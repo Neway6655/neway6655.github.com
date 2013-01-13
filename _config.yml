@@ -9,8 +9,8 @@ pygments: true
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : Neway6655's Blog
-tagline: 
+title : Neway6655
+tagline: A programmer's coding life
 author :
   name : Neway Liu
   email : neway_liuwei@yahoo.cn
