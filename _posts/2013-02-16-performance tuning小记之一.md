@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "performance tuning之tuning tools"
-description: "Performance tuning -- tuning tools"
+title: "performance tuning小记之一"
+description: "Performance tuning -- 小记"
 category: performance tuning, tuning tools
 tags: [perf4J, fast-redeploy-tool， tuning]
 ---
