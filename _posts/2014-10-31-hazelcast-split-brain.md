@@ -76,17 +76,21 @@ OK，了解了这三个方法之后，再看看脑裂是怎么产生的，关键
 
 
 - 如果它和其余所有member之间都断开了通信，那么它会把自己restart一遍，这个工作是由一个CheckIdle的PeriodicProcesser处理的，这个processer也是在注册在ClusterManager的构造函数里的:
-    registerPeriodicProcessable(new Processable() {
-    	public void process() {
-    		node.clusterService.checkIdle();
-    	}
-    }, 0, 1000);
+
+        registerPeriodicProcessable(new Processable() {
+    		public void process() {
+    			node.clusterService.checkIdle();
+    		}
+    	}, 0, 1000);
+
 这个checkIdle方法里会检查Member的是否有接收Packet (由于有heartbeat，对于一个正常的member都会收到heartbeat的Packet)，没有收到，就认为是idle状态，如果超过MAX_NO_HEARTBEAT_SECONDS的时间一直是idle状态，那么就会调用lifeCycleService.restart()方法，会将整个member重启，那么重启的过程中，该member就会寻找Cluster去发起join请求,重新加入cluster。
 
 - 如果它和某些其他的member之间仍保持网络可通(heartbeat能通)，那么它会和这些member重新组成一个cluster，通过重新选举一个master的方式。然后这个新的cluster会与之前的cluster做merge，这个工作是由SplitBrainHandler来完成，它也是注册在ClusterManager的构造函数里的：
-	final SplitBrainHandler splitBrainHandler = new SplitBrainHandler(node);
-	registerPeriodicProcessable(splitBrainHandler,
-		splitBrainHandler.getFirstRunDelayMillis(), splitBrainHandler.getNextRunDelayMillis());
+
+	    final SplitBrainHandler splitBrainHandler = new SplitBrainHandler(node);
+    	registerPeriodicProcessable(splitBrainHandler,
+    	splitBrainHandler.getFirstRunDelayMillis(), splitBrainHandler.getNextRunDelayMillis());
+
 这个SplitBrainiHandler做的事情就是对两个cluster进行merge，merge的检查是由每个cluster的master发起，规则是按照cluster的大小来定，小的cluster被merge到大的cluster中，如果size一样，就按照地址的hashcode比较，决定merge的方向，那么最终需要做merge的cluster的master会通知cluster里其他member去join到新的cluster的master那里去，然后各个member都会重启，重新join，然后把自己也重启，重新join到新的cluster中去。
 
 于是，脑裂最终得以恢复，大家又团聚在一起了。
