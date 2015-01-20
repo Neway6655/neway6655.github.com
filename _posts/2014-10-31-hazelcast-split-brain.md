@@ -7,23 +7,21 @@ tags: [hazelcast, split brain]
 ---
 {% include JB/setup %}
 
-最近遇到Hazelcast Split Brain的问题，纠缠了几天，网上相关资源非常稀缺，无奈之下只能分析源码，趁热打铁记录下Hazelcast关于Split Brain的产生和处理方法。
+前段时间项目上遇到有关Hazelcast Split Brain的问题，对其内部关于网络脑裂部分的代码做了些分析。这里从学习的角度，结合代码分析下Hazelcast脑裂产生的过程以及如何处理并恢复的[1]。
 
-注: 以下分析都是基于Hazelcast 2.6.9的版本.
+注[1]: 以下分析都是基于Hazelcast 2.6.9的版本.
 
 ### 什么是脑裂 ###
 wikipedia上关于脑裂的定义：
 
 > Split-brain is a term in computer jargon, based on an analogy with the medical Split-brain syndrome. It indicates data or availability inconsistencies originating from the maintenance of two separate data sets with overlap in scope, either because of servers in a network design, or a failure condition based on servers not communicating and synchronizing their data to each other.
 
-简单来说，就是应该在一个集群里的成员，由于某些原因，从集群中分离出来，形成两个或多个集群的情况。
-
-wikipedia上也说明了脑裂的两种解决方案:
-- 乐观方案：认为脑裂的问题在短时间内是可以恢复的，集群的暂时不一致性是可以容忍的，集群最终会恢复正常而达到一致性。集群恢复可以是自动或人为手工干预恢复的。
-- 悲观方案：认为脑裂的问题在短时间内是无法恢复的，集群宁愿牺牲一部分的可用性，也要保证集群的一致性。
+在Hazelcast里，简单来说，就是原来有一个10个member的集群，由于某些网络原因，导致其中的4个member和其余的6个member失去网络连接，从而原来10个member的集群被分割为两个独立的集群：一个4个member的集群和一个6个member的集群。出现这种现象就被称为_Split-Brain Syndrome_。
 
 ### 脑裂的产生 ###
-脑裂的产生往往是因为网络抖动不稳定等因素造成，导致集群的分裂，在Hazelcast里集群是由一个内部选举出来的Master管理的，Master会定期检查成员状态，更新所有集群成员信息并通知到各个成员，Master的这几个职责对应到代码里就是ClusterManager.java里的这么几个Processables:
+脑裂的产生往往是因为网络抖动不稳定等因素造成，意味着脑裂的产生并不是软件所能控制的，而是受外界因素影响的。那么在Hazelcast里，出现网络不稳定状况时，脑裂是如何产生的呢？
+首先，在Hazelcast的集群里有两种类型的成员：master和普通member。一个集群里只有一个master，由最早加入集群的节点当选，master负责集群的管理。
+其次，Hazelcast的集群成员管理主要由以下几个Processable的定时调度任务所控制，它们注册在ClusterManager.java这个类中：
 
         registerPeriodicProcessable(new Processable() {
             public void process() {
@@ -43,54 +41,30 @@ wikipedia上也说明了脑裂的两种解决方案:
             }
         }, memberListPublishIntervalMillis, memberListPublishIntervalMillis);
 
-下面会着重分析下这几个是干什么事情的:
+        registerPeriodicProcessable(splitBrainHandler,
+                splitBrainHandler.getFirstRunDelayMillis(), splitBrainHandler.getNextRunDelayMillis());
 
-首先看看heartBeater, Master和普通Member都会做heartbeat:
+我们先看看和产生脑裂相关的三个： ```heartBeater(),sendMemberListToOthers(),sendMasterConfirmation()```
 
+heartBeater()：master和普通member都会发起heartBeater，
+- master定期向集群中的所有普通member发送heartBeater消息，同时会检查是否有超过MAX_NO_HEARTBEAT_MILLIS时间都没有反应的member，有的话，就认为这个member已经脱离集群，更新集群里的member列表。
+- 普通member也会向cluster中其他member(包括master)发送heartBeater消息，如果master没有响应，那么会从集群的member列表中选举出一个新的master，**集群中每个member通过这个选举算法选出来的master是一致的**(集群成员列表按加入时间排序，找到当前master的下一个member作为新的master)。
 
-- Master的heartBeat，Master会定期主动给集群里每个成员发送heartbeat来检查他们的状态，**并且还会确认由各个集群成员发起的Master确认检查**，这里多解释一下(这也是Hazelcast 2.×早期几个版本的bug, 比如2.0.1)，可以通俗理解成：Master会定期主动问每个成员“你是我的成员吗？”，成员会回答说“是啊”，然后Master就一个一个记录下来，把没有响应的从成员列表里移除掉，同时，每个成员也会主动问Master“你确认下我还在不在你的成员列表里？”，Master收到这种请求后，会核对下看看这个发起者还是不是我的成员，如果不在列表里，那我也需要把他移除掉。因为有这么一种情况存在(这里起名叫“单相思现象”)：Master(MA)每次给成员C发heartbeat，C都回应了，但C记录的master并不是MA，而是另一个Master(MB, 可能是另一个集群的master)，这样MA在收不到C的master确认消息后(因为C只会给MB发送master确认消息)，会果断把C踢掉，就可以避免这种单相思现象出现了。
-- 普通Member的heartBeat，每个成员也会定期给Master发送heartbeat，来检查Master是否存活，否则就会另选一个Master出来。
+sendMemberListToOthers()：master向集群里其他member更新member列表(因为每个member拿到的都是一样的一份列表，所以说通过master选举算法大家选出来的master是一致的)。
 
-再看看sendMasterConfirmation:
+sendMasterConfirmation(): 根据上面的分析，master通过heartBeater检查，可以将master连不通的那些member从集群中移除，**但这个只能单向检查master到各个member的连接，而各个member到master的连接是否连通则无法得知**，于是就有了这个sendMasterConfirmation这个方法，这个方法由集群里的member向master发起MasterConfirmation的消息，master收到后用一个map记录下发起confirmation消息的member及时间，然后在heartBeater的过程中检查这个map，如果有集群的member不在这个map中(master收不到这个member的confirmation消息)，或者map里记录的对应某个member的confirmation消息已有一段时间没有更新(master已有段时间都没有再收到这个member的confirmation消息)，那么master都会将这样的member从集群里移除。
 
-- 在上面Heartbeat的时候已经提到过，这是Hazelcast2.×后面几个版本新加进去的，目的就是为了解决单相思的问题，而单相思现象的存在，会导致“整个大集群”(脑裂导致分裂出来的多个集群)的数据不一致，比如前面例子中的成员C被MasterA认为是在集群A里，但C又认为自己是在MasterB的集群B里，**这样的集群数据不一致会导致后面说道的脑裂集群合并做不下去**。
+就这样，通过这三个方法，保证了master和集群里的member之间双向连通性，而将连接有问题的成员从集群中移走，这也就是脑裂的产生过程了。
 
-最后看看这个sendMemberListToOthers:
-
-- 这个其实挺容易理解，就是Master会定期给集群里的每个成员更新所有成员的信息，来保证集群里所有Member拿到的集群信息一致。
-
-OK，了解了这三个方法之后，再看看脑裂是怎么产生的，关键就看heartbeat：
-
-
-- Master发送的heartbeat请求，如果超过MAX_NO_HEARTBEAT_MILLIS时间都没有响应，那么Master会把不响应的成员移除掉，那么这个成员就会游离在集群外，而当这个成员发送heartbeat给Master而Master也没有响应的话，这个成员会寻找新的master而组成新的集群，若Master的heartbeat仍能响应，但在发送Master Confirmation的时候，由于Master已经把他移除集群了，Master会回应说我已不再是你的Master，请重新再找个Master吧，然后这个成员也会寻找新的master而组成新的集群
-- 同样，普通Member发送给Master的heartbeat请求，超过MAX_NO_HEARTBEAT_MILLIS时间没有响应，会寻找新的master而组成新的集群。
-
-就这样，脑裂的现象就出现了，那么可以看到，这里关键的一点是MAX_NO_HEARTBEAT_MILLIS这个时间长度，因为heartbeat是每5秒(hardcode)做一次，也就意味着如果这个时间设得太短，比如10s，那么两次heartbeat没反应就会出现脑裂，这样轻微的网络抖动都可能导致脑裂的出现，但设置得太长，比如10分钟，那么网络真的出现问题的时候，中间会有10分钟的时间段出现请求出错异常等情况(因为有一些集群成员已经网络不通，但由于仍在集群中，请求仍会被发送到这些成员上)。所以对于这个配置值，需要谨慎配置。
+我们再用一个简单的例子来说明一下整个过程：假设一个集群ClusterA，有5个member(M1,M2..M5,加入集群的顺序也是这样)，M1为master，由于网络原因，M4,M5和其他member之间的网络断开了，M4和M5之间网络仍然正常，于是，master M1，通过heartBeater发现M4,M5没有响应，将他俩从集群里移除，更新cluster member列表，并通过sendMemberListToOthers通知M2,M3更新cluster member列表，而M4和M5的heartBeater检测到master M1连不上了，便重新选出M2作为新的master，但在下一次heartBeater检查时发现M2也连不上，于是再选出M3作为新的master，但也连不上，最后选出M4作为master，最后，脑裂出现了，原来的clusterA分成了两个clusterA': M1,M2,M3和clusterA": M4,M5，M1和M4分别是两个集群的master。
 
 ### 脑裂的恢复 ###
-上面讲解了脑裂的产生，那么现在再看看Hazelcast是如何解决脑裂的问题的，因为脑裂的产生是不可避免的(受网络环境影响)。
+接下来再看看Hazelcast是如何处理脑裂的，当然前提是网络已经恢复正常。
 
-我们需要了解下有Member被认为死掉，那么接下来会发生什么事情?
+从代码上通过名字可以知道处理脑裂的是SplitBrainHandler这个类，它也是在上面注册到ClusterManager里的一个定时调度task，而它做所的事情就是寻找网络中的是否还有其他的跟自己是同一个group的cluster，如果存在，则进行merge，直到网络中只有一个cluster为止。这里有两个问题：如何发现其他的cluster？如何做merge？
 
-对于死掉的Member：
+首先，只有master负责脑裂的恢复，那么先看第一个问题：如何发现其他的cluster？两种方式：tcp和multicast，在hazelcast的配置里，可以为集群设置network config是tcp的方式(指定所有member的ip address)或者multicast的方式，这里也是用这个配置，如果是tcp，则从配置的ip list里逐个遍历，查看是否有配置指定的member不在自己的cluster里，就做merge；如果是multicast，则发一个广播消息，向网络里的每一个member询问cluster的信息，若发现有和自己的cluster info不一致的member，就做merge。
 
+再看第二个问题：如何做merge？master先需要判断是否需要做merge，因为hazelcast做merge的策略是小集群向大集群merge，所以master先依据在上一步拿到的其他的cluster info和自己对比，如果自己的cluster成员数比人家多，就啥事不做，等着人家merge过来，如果比人家小，就开始做merge了，先给cluster里的其他member发MergeClusters的命令，并带上targeAddress，然后把自己restart重新加入新的集群；对于其他member，收到MergeClusters的命令后，也是将自己restart重新加入新的集群，就这样，集群之间的merge就完成了。对于数据的merge，请参考官方文档：http://docs.hazelcast.org/docs/2.6/manual/html-single/#NetworkPartitioning
 
-- 如果它和其余所有member之间都断开了通信，那么它会把自己restart一遍，这个工作是由一个CheckIdle的PeriodicProcesser处理的，这个processer也是在注册在ClusterManager的构造函数里的:
-
-        registerPeriodicProcessable(new Processable() {
-    		public void process() {
-    			node.clusterService.checkIdle();
-    		}
-    	}, 0, 1000);
-
-这个checkIdle方法里会检查Member的是否有接收Packet (由于有heartbeat，对于一个正常的member都会收到heartbeat的Packet)，没有收到，就认为是idle状态，如果超过MAX_NO_HEARTBEAT_SECONDS的时间一直是idle状态，那么就会调用lifeCycleService.restart()方法，会将整个member重启，那么重启的过程中，该member就会寻找Cluster去发起join请求,重新加入cluster。
-
-- 如果它和某些其他的member之间仍保持网络可通(heartbeat能通)，那么它会和这些member重新组成一个cluster，通过重新选举一个master的方式。然后这个新的cluster会与之前的cluster做merge，这个工作是由SplitBrainHandler来完成，它也是注册在ClusterManager的构造函数里的：
-
-	    final SplitBrainHandler splitBrainHandler = new SplitBrainHandler(node);
-    	registerPeriodicProcessable(splitBrainHandler,
-    	splitBrainHandler.getFirstRunDelayMillis(), splitBrainHandler.getNextRunDelayMillis());
-
-这个SplitBrainiHandler做的事情就是对两个cluster进行merge，merge的检查是由每个cluster的master发起，规则是按照cluster的大小来定，小的cluster被merge到大的cluster中，如果size一样，就按照地址的hashcode比较，决定merge的方向，那么最终需要做merge的cluster的master会通知cluster里其他member去join到新的cluster的master那里去，然后各个member都会重启，重新join，然后把自己也重启，重新join到新的cluster中去。
-
-于是，脑裂最终得以恢复，大家又团聚在一起了。
+我们继续之前的例子，在网络恢复正常后，clusterA'和clusterA"各自的master(M1和M4)开始干活啦，这里假设是用tcp的Network config方式连接，那么M1会向在Network config的配置列表里但不在自己cluster里member，也就是M4，M5，询问cluster info，拿到对方的cluster info发现比自己的cluster小，就坐等对方merge。而M4也是一样，会向M1，M2，M3询问cluster info，拿到后发现比自己的cluster大，于是告诉M5做merge，targetAddress是M1的地址，然后各自都restart，加入到clusterA'里。
