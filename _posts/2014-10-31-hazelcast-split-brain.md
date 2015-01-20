@@ -68,3 +68,16 @@ sendMasterConfirmation(): 根据上面的分析，master通过heartBeater检查�
 再看第二个问题：如何做merge？master先需要判断是否需要做merge，因为hazelcast做merge的策略是小集群向大集群merge，所以master先依据在上一步拿到的其他的cluster info和自己对比，如果自己的cluster成员数比人家多，就啥事不做，等着人家merge过来，如果比人家小，就开始做merge了，先给cluster里的其他member发MergeClusters的命令，并带上targeAddress，然后把自己restart重新加入新的集群；对于其他member，收到MergeClusters的命令后，也是将自己restart重新加入新的集群，就这样，集群之间的merge就完成了。对于数据的merge，请参考官方文档：http://docs.hazelcast.org/docs/2.6/manual/html-single/#NetworkPartitioning
 
 我们继续之前的例子，在网络恢复正常后，clusterA'和clusterA"各自的master(M1和M4)开始干活啦，这里假设是用tcp的Network config方式连接，那么M1会向在Network config的配置列表里但不在自己cluster里member，也就是M4，M5，询问cluster info，拿到对方的cluster info发现比自己的cluster小，就坐等对方merge。而M4也是一样，会向M1，M2，M3询问cluster info，拿到后发现比自己的cluster大，于是告诉M5做merge，targetAddress是M1的地址，然后各自都restart，加入到clusterA'里。
+
+最后，一个小Tips，如何方便查看Hazelcast的集群信息：
+```curl 'http://{ip}:{port}/hazelcast/rest/cluster' ```
+ip，port分别是hazelcast instance的机器ip和hazelcast的端口。
+
+请求会返回类似下面的一个结果：
+Members [5] {
+    Member [10.20.17.1:5701]
+    Member [10.20.17.2:5701]
+    Member [10.20.17.4:5701]
+    Member [10.20.17.3:5701]
+    Member [10.20.17.5:5701]
+ }
