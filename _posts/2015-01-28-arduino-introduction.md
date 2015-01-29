@@ -57,3 +57,5 @@ Arduino的硬件和软件都是开源的,这也是为什么它能火起来的重
 现在,应该能理解它定义里的那句*"easy-to-use hardware and software"*了吧.
 
 最后,附上[TED上的视频介绍](https://www.youtube.com/watch?v=UoBUXOOdLXY) .（观看需备梯子）
+
+看完有兴趣的话,可以在淘宝里买一个Arduino UNO板,然后从[这里](http://arduino.cc/en/Guide/HomePage)开始你的Arduino之旅吧。
