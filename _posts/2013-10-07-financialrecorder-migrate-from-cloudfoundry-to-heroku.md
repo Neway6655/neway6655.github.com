@@ -5,7 +5,6 @@ description: "Migrate financialrecorder from cloudfoundry to heroku"
 category: Cloud
 tags: [financialrecorder, heroku]
 ---
-{% include JB/setup %}
 
 之前做的financialrecorder记账工具的server部署在cloudfoundry上，由于6月份的时候cloudfoundry通知说要升级到v2版本，看了下v2有啥，擦，免费没有啦！于是就开始寻找新的免费的云平台，转悠转悠找到了Heroku，原因：免费，有mysql和redis的addon。
 

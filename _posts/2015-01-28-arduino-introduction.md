@@ -1,29 +1,28 @@
 ---
 layout: post
-title: "Arduino Brief Introduction"
+title: "What is Arduino"
 description: "Briefly introduce arduino"
 category: open-source hardware
 tags: [arduino]
 ---
-{% include JB/setup %}
 
 这是一篇关于Arduino的扫盲简文,用简单易懂的方式让大家了解Arduino到底是啥.
 
-Arduino的官网上是怎么定义自己的：
+Arduino的官网上是怎么定义自己的:
 
 >Arduino is an open-source electronics platform based on easy-to-use hardware and software. It's intended for anyone making interactive projects.
 
 
 ## Arduino = Arduino Board + Arduino Software ##
-Arduino是一个可编程的电路板加一套编程开发环境的软件.说到这,可能很多人容易想到大学时代的MCU51单片机,那么,这Arduino和单片机有啥区别呢?我们先看一个例子：
+Arduino是一个可编程的电路板加一套编程开发环境的软件.说到这,可能很多人容易想到大学时代的MCU51单片机,那么,这Arduino和单片机有啥区别呢?我们先看一个例子:
 
-如果有人问：“用单片机你会做个啥出来?”
+如果有人问:“用单片机你会做个啥出来?”
 
-我会回答：“做一个电子闹钟,还是带液晶显示的那种”（因为那个是我大学时的单片机课程作业）
+我会回答:“做一个电子闹钟,还是带液晶显示的那种”（因为那个是我大学时的单片机课程作业）
 
-但如果有人问我：“用Arduino做一个闹钟,咋样?”
+但如果有人问我:“用Arduino做一个闹钟,咋样?”
 
-我会回答：“行,那我做一个冬天会自动推迟闹铃的闹钟吧,天气越冷,就越晚一点闹铃”
+我会回答:“行,那我做一个冬天会自动推迟闹铃的闹钟吧,天气越冷,就越晚一点闹铃”
 
 
 这个例子并不是说用单片机就做不出来一个会自动推迟闹铃的闹钟,但做起来会麻烦很多,相比Arduino.
@@ -46,7 +45,7 @@ Arduino Board有一系列的板子,Arduino UNO是其中比较基础的一个,它
 
 这对做软件开发的程序猿来说吸引力是不是很大?摆脱硬件上的阻碍,把更多的精力放到软件程序上.
 
-除了这两点,Arduino还有一个及其重要的特点：
+除了这两点,Arduino还有一个及其重要的特点:
 
 ### Open Source ###
 

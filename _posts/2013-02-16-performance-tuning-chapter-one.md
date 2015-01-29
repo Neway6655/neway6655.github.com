@@ -5,7 +5,6 @@ description: "Performance tuning -- 小记"
 category: performance tuning, tuning tools
 tags: [perf4J, fast-redeploy-tool， tuning]
 ---
-{% include JB/setup %}
 
 这段时间一直忙于工作，经过漫长的一个多月的tunning，差不多有了些结果，现记下一些个人关于performance tunning的感想，为自己，也为别人。
 

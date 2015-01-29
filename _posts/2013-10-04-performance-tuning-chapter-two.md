@@ -5,7 +5,6 @@ description: "Performance tuning -- 小记"
 category: performance tuning, tuning tools
 tags: [clustering log collector, logstash]
 ---
-{% include JB/setup %}
 
 半年时间又过去了， 每当回顾下有什么可以记录下来的时候，又是只有performance tuning，于是上篇blog的姊妹篇诞生了，继续写写关于tuning tools的新发现。
 
