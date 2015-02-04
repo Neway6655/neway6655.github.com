@@ -41,6 +41,7 @@ theme:
   # Scripts
   google_analytics: # tracking id, e.g. "UA-000000-01"
   disqus_shortname:
+  duoshuo_shortname: "neway6655"
   
   # Localization strings
   str_follow_on: "Follow on"
