@@ -92,6 +92,6 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 ![Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/img/graphite-usage/graphite-deployment-2.png)
 
-[^1]: 对于这里列出来的问题，如果你有其他的办法解决，非常欢迎留言分享.
+[^1]: 对于这里列出来的问题，如果你有其他的办法解决，非常欢迎留言分享或者email：neway.liu1985@gmail.com.
 [^2]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)第7章.
 [^3]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)7.6, 7.7两小节.
