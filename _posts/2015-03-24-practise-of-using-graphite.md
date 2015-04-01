@@ -6,7 +6,7 @@ category: graphite
 tags: [graphite]
 ---
 
-关于Graphite的介绍文档有很多，[江南白衣的Graphite wiki](https://github.com/springside/springside4/wiki/Graphite)已经写得很全面了，这篇文章就不会再更多的介绍Graphite了，而是从一个使用者的角度补充一些实际采用Graphtie收集metrics时遇到的问题及解决办法[^1]，通俗点说就是“我们曾经踩过的坑及填平方法”，额，有没有填平，还有待系统上线的考验。
+关于Graphite的介绍文档有很多，[江南白衣的Graphite wiki](https://github.com/springside/springside4/wiki/Graphite)已经写得很全面了，这篇文章就不会再更多的介绍Graphite了，而是从一个使用者的角度补充一些实际采用Graphtie收集业务数据时遇到的问题及解决办法[^1]，通俗点说就是“我们曾经踩过的坑及填平方法”，额，有没有填平，还有待系统上线的考验。
 
 我们用的graphite版本是0.9.12，最新的稳定版。
 
