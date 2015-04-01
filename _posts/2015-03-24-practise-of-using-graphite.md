@@ -75,9 +75,9 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 ![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/img/graphite-usage/graphite-aggregator.png)
 
-首先，我们假设配置的聚合频率是10s一次，聚合方式是求和(sum)，t0, t10, t20这几个时间戳相差10s，而MAX_AGGREGATION_INTERVALS=2，也就是会保存做两次aggregation的时间长度的metrics(datapoints time window)，超过这个时间长度(比如20s以前)的metrics，aggregator会将丢掉其aggregated的数据，意味着如果同样的metric key，同样的timestamp，在20s之后收到，再做aggregator时，是不会和之前丢掉的aggregated的数据再合并的，请看下面的例子：
+首先，我们假设配置的聚合频率是10s一次，聚合方式是求和(sum)，t0, t10, t20这几个时间戳相差10s，而MAX_AGGREGATION_INTERVALS=2，也就是会保存做两次aggregation的时间长度的metrics(datapoints time window)，超过这个时间长度(比如20s以前)的metrics，aggregator会将丢掉其aggregated的数据，意味着如果同样的metric key，同样的timestamp，在20s之后收到，再做aggregator时，是不会和之前丢掉的aggregated的数据再合并的，结合上面图例中的情况：
 
-那么，可以看到在t0和t10之间的10s内收到同一个metric的3个datapoints：(t1,10)，(t1,13)，(t2,18)，在t10这个时间点到达时，carbon-aggregator就做一次aggregation，计算出来的结果会生产一个时间戳t0的新metric：(t0,41)。
+在t0和t10之间的10s内收到同一个metric的3个datapoints：(t1,10)，(t1,13)，(t2,18)，在t10这个时间点到达时，carbon-aggregator就做一次aggregation，计算出来的结果会生产一个时间戳t0的新metric：(t0,41)。
 
 然后在t10和t20之间又收到这个metric的datapoint: (t1,15)，落在aggregation保留的metric时间窗口内，aggregator会继续之前的统计结果计算新的datapoint：(t0,56)。
 所以这个datapoint才是最准确的aggregation结果。
@@ -86,7 +86,7 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 那为什么统计数据会比实际多呢？还是看回这个原理图，还记得在前面我提到我们用了两个carbon-aggregator吗？第一个的统计结果会作为第二个的输入再统计，那么结合刚才的那个问题，如果有datapoint(比如图例中的(t1,15))在第一个aggregator的处理被滞后，会导致第一个aggregator做两次aggregation，生成(t0,41)和(t0,56)两个datapoints，而它们有同一个metric key，而且同一个timestamp(t0)，但value分别是41和56，对于第二个aggregator(假设统计方式仍是sum)，它会把这两个datapoint再次聚合(sum)，得到的datapoint是(t0,97)，而正确的结果应该是(t0,56)，因为从原始的数据来看，统计结果应该是10+13+18+15，也就是56，这就是统计数据比实际数据多的原因了。
 
-解决办法就是避免用两个aggregator串行统计，而是分开各自统计各自的，统计的结果不要再作为另一个aggregator的输入即可，这点算是使用graphite的carbon-aggregator一个practise吧，官方文档里也没有强调这样使用所导致的问题，因为如果在数据量少的情况下，并不会导致aggregator的处理延迟，也就不会出现统计数据不准确的情况了。
+解决办法就是避免用两个aggregator串行统计，而是使用一层aggregator，统计结果直接发到carbon-cache，根据[这个fix](https://github.com/graphite-project/carbon/issues/109)，carbon-cache会对同一个metric，同一个timestamp的多个datapoints按carbon-cache收到他们的时间倒序排列，取最近一次收到的结果作为这个metric最终的datapoint。这样，就可以保证即使aggregator做了多次聚合[^4]，最终统计的结果也是正确的。那么，是用一个aggregator，对所有的metrics的聚合都由它来完成呢？还是分开多个aggregator，每个负责统计不同业务数据类型的metrics？用一个aggregator：整体架构简单，但处理效率低，用多个aggregator：架构复杂，但处理效率高[^5]。所以如果metrics本身是可分类的，traffic又比较大，比如每秒上万的metrics，那么就应该考虑分多个aggregator的方案，因为aggregator的处理效率直接影响到数据统计的准确性，因为处理的延时，可能导致一些数据很晚才被统计，而且可能已经过了aggregator设置的datapoint time window。比如我们这样的情况，如果只用一个aggregator，datapoint time window设置50s，跑上10分钟的traffic后，统计数据就开始不准确了。但如果在traffic不大的情况下，用一个aggregator可以处理所有的聚合工作，只要不导致延迟处理的情况，也不会出现最终统计数据的不准确问题。[这里](https://answers.launchpad.net/graphite/+question/187874)也提到了类似的对于使用多个aggregator的建议和考虑。
 
 所以，我们最终的部署变成这样：
 
@@ -95,3 +95,5 @@ OK，我们的部署经过这个优化完后就变成了这样：
 [^1]: 对于这里列出来的问题，如果你有其他的办法解决，非常欢迎留言分享或者email：neway.liu1985@gmail.com.
 [^2]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)第7章.
 [^3]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)7.6, 7.7两小节.
+[^4]: 注明：aggregator做多次聚合是指对一个datapoint time window内收到的datapoints做了多次聚合，因为超过这个时间窗口的datapoint，会被重新统计，这样会统计值就不准确了，输出到carbon-cache再写到磁盘的数据也是不准确的。
+[^5]: 一个carbon-aggregator就是一个处理进程，而python又是单线程处理，多一个aggregator并行处理，整体的处理能力也就提高了。
