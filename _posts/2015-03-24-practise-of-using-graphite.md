@@ -95,5 +95,5 @@ OK，我们的部署经过这个优化完后就变成了这样：
 [^1]: 对于这里列出来的问题，如果你有其他的办法解决，非常欢迎留言分享或者email：neway.liu1985@gmail.com.
 [^2]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)第7章.
 [^3]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)7.6, 7.7两小节.
-[^4]: 注明：aggregator做多次聚合是指对一个datapoint time window内收到的datapoints做了多次聚合，因为超过这个时间窗口的datapoint，会被重新统计，这样会统计值就不准确了，输出到carbon-cache再写到磁盘的数据也是不准确的。
+[^4]: aggregator做多次聚合是指对一个datapoint time window内收到的datapoints做了多次聚合，因为超过这个时间窗口的datapoint，会被重新统计，这样会统计值就不准确了，输出到carbon-cache再写到磁盘的数据也是不准确的。
 [^5]: 一个carbon-aggregator就是一个处理进程，而python又是单线程处理，多一个aggregator并行处理，整体的处理能力也就提高了。
