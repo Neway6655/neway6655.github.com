@@ -86,9 +86,30 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 那为什么统计数据会比实际多呢？还是看回这个原理图，还记得在前面我提到我们用了两个carbon-aggregator吗？第一个的统计结果会作为第二个的输入再统计，那么结合刚才的那个问题，如果有datapoint(比如图例中的(t1,15))在第一个aggregator的处理被滞后，会导致第一个aggregator做两次aggregation，生成(t0,41)和(t0,56)两个datapoints，而它们有同一个metric key，而且同一个timestamp(t0)，但value分别是41和56，对于第二个aggregator(假设统计方式仍是sum)，它会把这两个datapoint再次聚合(sum)，得到的datapoint是(t0,97)，而正确的结果应该是(t0,56)，因为从原始的数据来看，统计结果应该是10+13+18+15，也就是56，这就是统计数据比实际数据多的原因了。
 
-解决办法就是避免用两个aggregator串行统计，而是使用一层aggregator，统计结果直接发到carbon-cache，根据[这个fix](https://github.com/graphite-project/carbon/issues/109)，carbon-cache会对同一个metric，同一个timestamp的多个datapoints按carbon-cache收到他们的时间倒序排列，取最近一次收到的结果作为这个metric最终的datapoint。这样，就可以保证即使aggregator做了多次聚合[^4]，最终统计的结果也是正确的。那么，是用一个aggregator，对所有的metrics的聚合都由它来完成呢？还是分开多个aggregator，每个负责统计不同业务数据类型的metrics？用一个aggregator：整体架构简单，但处理效率低，用多个aggregator：架构复杂，但处理效率高[^5]。所以如果metrics本身是可分类的，traffic又比较大，比如每秒上万的metrics，那么就应该考虑分多个aggregator的方案，因为aggregator的处理效率直接影响到数据统计的准确性，因为处理的延时，可能导致一些数据很晚才被统计，而且可能已经过了aggregator设置的datapoint time window。比如我们这样的情况，如果只用一个aggregator，datapoint time window设置50s，跑上10分钟的traffic后，统计数据就开始不准确了。但如果在traffic不大的情况下，用一个aggregator可以处理所有的聚合工作，只要不导致延迟处理的情况，也不会出现最终统计数据的不准确问题。[这里](https://answers.launchpad.net/graphite/+question/187874)也提到了类似的对于使用多个aggregator的建议和考虑。
+解决办法有两个：
 
-所以，我们最终的部署变成这样：
+方法一)：就是避免用两个aggregator串行统计，而是使用一层平行的多个aggregator，统计结果直接发到carbon-cache，根据[这个fix](https://github.com/graphite-project/carbon/issues/109)，carbon-cache会对同一个metric，同一个timestamp的多个datapoints按carbon-cache收到他们的时间倒序排列，取最近一次收到的结果作为这个metric最终的datapoint。这样，就可以保证即使aggregator做了多次聚合[^4]，最终统计的结果也是正确的。那么，是用一个aggregator，对所有的metrics的聚合都由它来完成呢？还是分开多个aggregator，每个负责统计不同业务数据类型的metrics？用一个aggregator：整体架构简单，但处理效率低，用多个aggregator：架构复杂，但处理效率高[^5]。所以如果metrics本身是可分类的，traffic又比较大，比如每秒上万的metrics，那么就应该考虑分多个aggregator的方案，因为aggregator的处理效率直接影响到数据统计的准确性，因为处理的延时，可能导致一些数据很晚才被统计，而且可能已经过了aggregator设置的datapoint time window。比如我们这样的情况，如果只用一个aggregator，datapoint time window设置50s，跑上几分钟的traffic后，统计数据就开始不准确了。但如果在traffic不大的情况下，用一个aggregator可以处理所有的聚合工作，只要不导致延迟处理的情况，也不会出现最终统计数据的不准确问题。[这里](https://answers.launchpad.net/graphite/+question/187874)也提到了类似的对于使用多个aggregator的建议和考虑，注意：只要发现有aggregator的进程CPU占用率一直在100%徘徊，就是出现了延迟处理的情况，则需要拆分多个aggregator分别处理，或者将aggregation interval的时间加大，比如从10s变成60s(当然是在业务上不影响的情况下)，相当于是给多些时间做aggregation。
+
+方法二)：仍然用两个aggregator串行统计，但第一个aggregator的datapoint time window设置为一次aggregation interval的时间，也就是MAX_AGGREGATION_INTERVALS=1，而后面接着的aggregator的datapoint time window需要设置大一些，这样做的目的？请看下图：
+
+![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/img/graphite-usage/graphite-aggregator-2.png)
+
+可以看到，经过第一个aggregator后，产生了两个datapoints(t0,41)和(t0,15)，那么只要第二个aggregator的time window包含了t10时刻产生的(t0,41)和t20时刻产生的(t0,15)，那么最终统计的结果仍然是正确的(t0,56)。
+
+另外，这里给一个定义“好”的aggregation-rules的Tips：
+
+>尽量使aggregation后的metric key个数少，避免aggregation占用100%CPU
+
+没有理解？没关系，我们看个例子：
+
+对于这样两个的rules：
+metrics.all.\<app\>.\<api\>.\<status\>.count (10) = metrics.*.\<app\>.\<api\>.\<status\>.count
+
+metrics.\<node\>.all.\<api\>.\<status\>.count (10) = metrics.\<node\>.*.\<api\>.\<status\>.count
+
+第一个是对node做聚合，这样产生的新metrics个数会很多，因为app的个数比较多；第二个对app做聚合，这样产生的新metrics个数不多，因为app这个个数多的维度被聚合成一个了，而其他维度的个数明显少于app的个数。所以第二个rule的开销低，但并不是说不能定义第一个rule，而是不能定义过多的这样的rules，比如这条是count，后面还接着有min, max等同样都是不对app做聚合的rules，导致太多新生产的metrics，而使aggregator忙不过来，因为可以理解为aggregator其实是会为每一个新的metric的聚合都准备一个线程处理的，这样metrics太多，需要准备的线程数太多了。
+
+最后我们所选择的方案还是第一个(没有特别原因)，所以，我们部署模型最终变成这样：
 
 ![Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/img/graphite-usage/graphite-deployment-2.png)
 
