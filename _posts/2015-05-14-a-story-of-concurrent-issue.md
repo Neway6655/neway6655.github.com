@@ -12,26 +12,26 @@ tags: [concurrent]
 
 {% highlight java %}
 private List<Long> measurements = new LinkedList<Long>();
-...
+
 public void update(long value) {
     measurements.add(value);
 }
-...
+
 public HistogramMetric calculateMetric() {
     // keep snapshot not to block new metrics update
     List<Long> snapshotList = measurements;
     measurements = new LinkedList<Long>();
-    ......
+    // skip code here ...
     for (Long value : snapshotList) {
-        ...
+        // skip code here ...
     }
-    ...
+    // skip code here ...
 }
 {% endhighlight %}
 
 简单解释下代码: traffic线程调用update方法不断的往measurements这个list里加值, 每隔段时间(10s)会有另一个线程调用calculateMetric方法计算这个时间段内的最大，最小值，总和，平均值等统计数据。
 
->问题：程序日志打印```for (Long value : snapshotList) ``` 这行报ConcurrentModificationException错
+>问题：程序日志报ConcurrentModificationException错误
 
 {% highlight java %}
 java.util.ConcurrentModificationException: null
@@ -40,7 +40,12 @@ java.util.ConcurrentModificationException: null
         at com.***.Histogram.calculateMetric(Histogram.java:70)
 {% endhighlight %}
 
-这里第70行就是for那段.
+这里第70行就是for这段:
+
+{% highlight java %}
+for (Long value : snapshotList)
+{% endhighlight %}
+
 
 >分析(一): 为什么会在for这里报ConcurrentModificationException的错误?
 
@@ -114,8 +119,10 @@ public HistogramMetric calculateMetric() {
     mutex.set(false);
     snapshotCountDownLatch.countDown();
     for (Long value : snapshotList) {
-        ...
+        // skip code here ...
     }
+    // skip code here ...
+}
 {% endhighlight %}
 
 待续补充:对不同方案的进行压力测试.
