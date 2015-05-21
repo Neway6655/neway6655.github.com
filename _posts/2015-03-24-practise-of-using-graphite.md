@@ -88,7 +88,15 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 解决办法有两个：
 
-方法一)：避免用两个aggregator串行统计，而是使用一层平行的多个aggregator，统计结果直接发到carbon-cache，根据[这个fix](https://github.com/graphite-project/carbon/issues/109)，carbon-cache会对同一个metric，同一个timestamp的多个datapoints按carbon-cache收到他们的时间倒序排列，取最近一次收到的结果作为这个metric最终的datapoint。这样，就可以保证即使aggregator做了多次聚合[^4]，最终统计的结果也是正确的。那么，是用一个aggregator，对所有的metrics的聚合都由它来完成呢？还是分开多个aggregator，每个负责统计不同业务数据类型的metrics？用一个aggregator：整体架构简单，但处理效率低，用多个aggregator：架构复杂，但处理效率高[^5]。所以如果metrics本身是可分类的，traffic又比较大，比如每秒上万的metrics，那么就应该考虑分多个aggregator的方案，因为aggregator的处理效率直接影响到数据统计的准确性，因为处理的延时，可能导致一些数据很晚才被统计，而且可能已经过了aggregator设置的datapoint time window。比如我们这样的情况，如果只用一个aggregator，datapoint time window设置50s，跑上几分钟的traffic后，统计数据就开始不准确了。但如果在traffic不大的情况下，用一个aggregator可以处理所有的聚合工作，只要不导致延迟处理的情况，也不会出现最终统计数据的不准确问题。[这里](https://answers.launchpad.net/graphite/+question/187874)也提到了类似的对于使用多个aggregator的建议和考虑，注意：只要发现有aggregator的进程CPU占用率一直在100%徘徊，就是出现了延迟处理的情况，则需要拆分多个aggregator分别处理，或者将aggregation interval的时间加大，比如从10s变成60s(如果10s和60s所需统计的metric key总量一样，才有改善的空间，当然前提是需求上可以忽略10s的统计值)，相当于是给多些时间做aggregation。
+方法一)：避免用两个aggregator串行统计，而是使用一层平行的多个aggregator，统计结果直接发到carbon-cache，根据[这个fix](https://github.com/graphite-project/carbon/issues/109)，carbon-cache会对同一个metric，同一个timestamp的多个datapoints按carbon-cache收到他们的时间倒序排列，取最近一次收到的结果作为这个metric最终的datapoint。这样，就可以保证即使aggregator做了多次聚合[^4]，最终统计的结果也是正确的。那么，是用一个aggregator，对所有的metrics的聚合都由它来完成呢？还是分开多个aggregator，每个负责统计不同业务数据类型的metrics？用一个aggregator：整体架构简单，但处理效率低，用多个aggregator：架构复杂，但处理效率高[^5]。所以如果metrics本身是可分类的，traffic又比较大，比如每秒上万的metrics，那么就应该考虑分多个aggregator的方案，因为aggregator的处理效率直接影响到数据统计的准确性，因为处理的延时，可能导致一些数据很晚才被统计，而且可能已经过了aggregator设置的datapoint time window。比如我们这样的情况，如果只用一个aggregator，datapoint time window设置50s，跑上几分钟的traffic后，统计数据就开始不准确了。但如果在traffic不大的情况下，用一个aggregator可以处理所有的聚合工作，只要不导致延迟处理的情况，也不会出现最终统计数据的不准确问题。[这里](https://answers.launchpad.net/graphite/+question/187874)也提到了类似的对于使用多个aggregator的建议和考虑，
+
+注意：只要发现有aggregator的进程CPU占用率一直在100%徘徊，就是出现了延迟处理的情况，可以：
+
++ 拆分多个aggregator分担处理请求，
+
++ 或者将aggregation interval的时间加大，比如从10s变成60s(如果10s和60s所需统计的metric key总量一样，才有改善的空间，当然前提是需求上可以忽略10s的统计值)，相当于是给多些时间做aggregation，
+
++ 或者采用[carbon-c-relay](https://github.com/grobian/carbon-c-relay)，一个用C写的carbon，功能集包括了carbon-relay，carbon-aggregator和carbon-cache，由于是C实现，所以可以利用多核处理，效率大大提升，具体使用可以参考[这里](https://github.com/grobian/carbon-c-relay/issues/60)
 
 方法二)：仍然用两个aggregator串行统计，但第一个aggregator的datapoint time window设置为一次aggregation interval的时间，也就是MAX_AGGREGATION_INTERVALS=1，而后面接着的aggregator的datapoint time window需要设置大一些，这样做的目的？请看下图：
 
