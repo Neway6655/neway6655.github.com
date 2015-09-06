@@ -12,7 +12,7 @@ tags: [graphite]
 
 先大致介绍下我们最开始采用的Graphite部署模型，比较简单:
 
-![Current Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/graphite-usage/current-graphite-deployment.png)
+![Current Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/graphite-usage/current-graphite-deployment.png)
 
 两套ative的graphite server，metrics由前端的haproxy做round-robin分发到两台graphite server，carbon-relay将数据双写到两边的carbon-cache，保证两边的graphite server数据一致，这是最简单的HA方案，对于一台server failover的情况，recover可以通过carbonate提供的sync脚本对两边whisper文件进行同步。用户的访问查询请求，也是经过haproxy随机分发到某一台graphite server查询，由于两边的数据是一致的，所以graphite server查本地whisper和carbon-cache就够了。
 
@@ -61,7 +61,7 @@ metrics.allnode.all.all.<status>.count (10) = metrics.allnode.*.*.<status>.count
 
 OK，我们的部署经过这个优化完后就变成了这样：
 
-![Improved Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/graphite-usage/graphite-deployment-1.png)
+![Improved Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/graphite-usage/graphite-deployment-1.png)
 
 这样是不是就完了？按照正常剧情的发展，一般都会有些波折，我们也不例外，进一步的测试发现另一个问题：
 
@@ -73,7 +73,7 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 遇到这个问题，就没有办法了，只能看代码+各种可能性的排查，最终定位到还是aggregator的问题，所以，我们还是先了解一下carbon-aggregator的工作原理吧：
 
-![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/graphite-usage/graphite-aggregator.png)
+![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/graphite-usage/graphite-aggregator.png)
 
 首先，我们假设配置的聚合频率是10s一次，聚合方式是求和(sum)，t0, t10, t20这几个时间戳相差10s，而MAX_AGGREGATION_INTERVALS=2，也就是会保存做两次aggregation的时间长度的metrics(datapoints time window)，超过这个时间长度(比如20s以前)的metrics，aggregator会将丢掉其aggregated的数据，意味着如果同样的metric key，同样的timestamp，在20s之后收到，再做aggregator时，是不会和之前丢掉的aggregated的数据再合并的，结合上面图例中的情况：
 
@@ -100,7 +100,7 @@ OK，我们的部署经过这个优化完后就变成了这样：
 
 方法二)：仍然用两个aggregator串行统计，但第一个aggregator的datapoint time window设置为一次aggregation interval的时间，也就是MAX_AGGREGATION_INTERVALS=1，而后面接着的aggregator的datapoint time window需要设置大一些，这样做的目的？请看下图：
 
-![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/graphite-usage/graphite-aggregator-2.png)
+![Carbon Aggregator](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/graphite-usage/graphite-aggregator-2.png)
 
 可以看到，经过第一个aggregator后，产生了两个datapoints(t0,41)和(t0,15)，那么只要第二个aggregator的time window包含了t10时刻产生的(t0,41)和t20时刻产生的(t0,15)，那么最终统计的结果仍然是正确的(t0,56)。
 
@@ -120,7 +120,7 @@ metrics.\<node\>.all.\<api\>.\<status\>.count (10) = metrics.\<node\>.*.\<api\>.
 
 最后我们所选择的方案还是第一个(没有特别原因)，所以，我们部署模型最终变成这样：
 
-![Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/graphite-usage/graphite-deployment-2.png)
+![Graphite Deployment](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/graphite-usage/graphite-deployment-2.png)
 
 [^1]: 对于这里列出来的问题，如果你有其他的办法解决，非常欢迎留言分享或者email：neway.liu1985@gmail.com.
 [^2]: 详细可参考[The Architecture of Graphite](http://aosabook.org/en/graphite.html)第7章.

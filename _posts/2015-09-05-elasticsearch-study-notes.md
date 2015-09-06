@@ -76,13 +76,13 @@ InfoQ那篇文章里提到Elasticsearch使用的倒排索引比关系型数据�
 
 在这个基础上，再结合磁盘读取的特性(顺序读/随机读)，传统关系型数据库采用了B-Tree的数据结构：
 
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/b-tree.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/b-tree.png)
 
 为了提高查询的效率，减少磁盘寻道次数，将多个值作为一个数组通过连续区间存放，一次寻道读取多个数据，降低树的高度。
 
 ####什么是倒排索引?
 
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/inverted-index.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/inverted-index.png)
 
 继续上面的例子，假设有这么几条数据(为了简单，去掉about, interests这两个field):
 | ID | Name | Age  |  Sex     |
@@ -130,10 +130,10 @@ Elasticsearch为了能快速找到某个term，将所有的term排个序，二�
 #####Term Index
 
 B-Tree通过减少磁盘寻道次数来提高查询性能，Elasticsearch也是通过这样的思路，Elasticsearch直接通过内存查找term，这样就不用扫磁盘了，但是如果term太多，term dictionary也会很大，放内存不现实，于是有了**Term Index**，就像字典里的索引页一样，A开头的有哪些term，分别在哪页，可以理解term index是一颗树：
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/term-index.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/term-index.png)
 
 这棵树不会包含所有的term，它包含的是term的一些前缀。通过term index可以快速地定位到term dictionary的某个offset，然后从这个位置再往后顺序查找。
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/index.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/index.png)
 
 所以term index不需要存下所有的term，而仅仅是他们的一些前缀，再结合通过FST(Finite State Transducers)的压缩技术，可以使term index以树的形式缓存在内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数。
 
@@ -143,7 +143,7 @@ B-Tree通过减少磁盘寻道次数来提高查询性能，Elasticsearch也是�
 >FSTs are finite-state machines that **map** a **term (byte sequence)** to an arbitrary **output**.
 
 假设我们现在要将mop, moth, pop, star, stop and top映射到他们的字典排序的序号：0，1，2，3，4，5。最简单的做法就是定义个Map<String, Integer>，大家找到自己的位置入座就好了，但从内存占用少的角度再想想，有没有更优的办法呢？答案就是：**FST**([理论依据在此，但我相信你不会想去看的](http://www.cs.nyu.edu/~mohri/pub/fla.pdf))
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/fst.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/fst.png)
 
 ⭕️表示一种状态
 ➡️表示状态的变化过程，上面的字母/数字表示状态变化和权重
@@ -154,7 +154,7 @@ B-Tree通过减少磁盘寻道次数来提高查询性能，Elasticsearch也是�
 
 FST以字节的方式存储所有的term，这种压缩方式可以有效的缩减存储空间，使得term index足以放进内存，但这种方式也会导致查找时需要更多的CPU资源。
 
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/fst-compress.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/fst-compress.png)
 
 后面的更精彩，看累了的同学可以喝杯咖啡……
 
@@ -172,7 +172,7 @@ Elasticsearch如何有效的对这些文档id压缩的呢？
 >增量编码压缩，将大数变小数，按字节存储
 
 首先，Elasticsearch要求posting list是有序的（为了提高搜索的性能，再任性的要求也得满足），这样做的一个好处是方便压缩，看下面这个图例：
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/frameOfReference.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/frameOfReference.png)
 
 如果数学不是体育老师教的话，还是比较容易看出来这种压缩技巧的吧。
 
@@ -193,7 +193,7 @@ Elasticsearch如何有效的对这些文档id压缩的呢？
 Bitmap的缺点是存储空间随着文档个数线性增长，Roaring bitmaps需要打破这个魔咒就一定要用到指数的特性：
 
 将posting list按照65535为界限切分，比如第一块所包含的文档id范围在0~65535之间，第二块的id范围是65536~131071，以此类推。
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/Roaringbitmaps.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/Roaringbitmaps.png)
 
 细心的小明这时候又举手了:"为什么是以65535为界限?"
 
@@ -214,13 +214,13 @@ Bitmap的缺点是存储空间随着文档个数线性增长，Roaring bitmaps�
 
 先看看跳表的数据结构：
 
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/skiplist.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/skiplist.png)
 
 将一个有序链表level0，挑出其中几个元素到level1及level2，每个level越往上，选出来的指针元素越少，查找时依次从高level往低查找，比如55，先找到level2的31，再找到level1的47，最后找到55，一共3次查找，查找效率和2叉树的效率相当，但也是用了一定的空间冗余来换取的。
 
 假设有下面三个posting list需要联合索引：
 
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/image/elasticsearch-study/combineIndex.png)
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/combineIndex.png)
 
 如果使用跳表，对最短的posting list中的每个id，逐个在另外两个posting list中查找看是否存在，最后得到交集的结果。
 
