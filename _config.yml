@@ -39,8 +39,8 @@ timezone:      null
 
 
 #站点基础配置
-title: Neway
-subTitle: Neway's Blog.
+title: Neway's Blog.
+subTitle: Don't find fault. Find a remedy. -- Henry Ford
 description: This is Neway's personal technical blog, to write down the interest things duing working, studying and living. 
 url: http://neway6655.github.io
 feed: /atom.xml
@@ -51,8 +51,6 @@ nav:
     url: /index.html
   - text: 文章归档
     url: /archives.html
-  - text: 联系我
-    url: neway.liu1985@gmail.com 
 
 #theme config
 themes: /themes/violet
