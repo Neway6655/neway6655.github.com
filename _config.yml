@@ -1,68 +1,88 @@
-# SITE CONFIGURATION
-baseurl: ""
-url: "http://neway6655.github.io/"
+# Where things are
+source:       .
+destination:  ./_site
+plugins:      ./_plugins
+layouts:      ./_layouts
+paginate:     8
 
-# THEME-SPECIFIC CONFIGURATION
-theme:
-  # Meta
-  title: Neway
-  avatar: neway_avatar.png
-  gravatar: 0b46f26b2a5ac0f3b0e52d355d76a3c1
-  description: "Neway's blog."
-  
-  # Header and footer text
-  header_text: >     
-   Don't find fault. Find a remedy. -- Henry Ford
-  footer_text: >
-   Copyright 2015
-  
-  # Icons
-  rss: true
-  email_address: neway.liu1985@gmail.com
-  behance:
-  bitbucket: 
-  dribbble: 
-  facebook: 
-  flickr: 
-  github: "Neway6655"
-  google_plus: 
-  instagram: 
-  linkedin:  "http://www.linkedin.com/profile/public-profile-settings?trk=prof-edit-edit-public_profile"
-  pinterest: 
-  reddit: 
-  soundcloud: 
-  stack_exchange:
-  steam: 
-  tumblr: 
-  twitter:
-  wordpress: 
-  youtube: 
-  
-  # Scripts
-  google_analytics: # tracking id, e.g. "UA-000000-01"
-  disqus_shortname:
-  duoshuo_shortname: "neway6655"
-  
-  # Localization strings
-  str_follow_on: "Follow on"
-  str_rss_follow: "Follow RSS feed"
-  str_email: "neway.liu1985@gmail.com"
-  str_next: "Next"
-  str_prev: "Prev"
-  str_continue_reading: "Continue reading"
-  
-  # Colors, typography and padding
-  # Open the "_sass > base" folder, and open "_variables.scss"
+# Handling Reading
+safe:         false
+include:      [".htaccess"]
+exclude:      []
+keep_files:   [".git", ".svn"]
+encoding:     "utf-8"
+markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+textile_ext:  "textile"
 
-# PAGINATION
-paginate: 5
-paginate_path: "blog/page:num"
+# Filtering Content
+show_drafts:  null
+limit_posts:  0
+future:       true
+unpublished:  false
 
-# BUILD SETTINGS
-markdown: kramdown
-highlighter: pygments
-sass:
-  sass_dir: _sass
-  style: :compressed
-  
-encoding: UTF-8
+# Conversion
+markdown:     kramdown
+highlighter:  pygments
+lsi:          false
+excerpt_separator: "\n\n"
+
+# Serving
+detach:       false
+port:         4000
+host:         127.0.0.1
+baseurl:      "" # does not include hostname
+
+# Outputting
+permalink:     date
+paginate_path: /page:num
+timezone:      null
+
+
+#站点基础配置
+title: Neway
+subTitle: Neway's Blog.
+description: This is Neway's personal technical blog, to write down the interest things duing working, studying and living. 
+url: http://neway6655.github.io
+feed: /atom.xml
+
+#菜单配置
+nav:
+  - text: 首页
+    url: /index.html
+  - text: 文章归档
+    url: /archives.html
+  - text: 联系我
+    url: neway.liu1985@gmail.com 
+
+#theme config
+themes: /themes/violet
+
+#配置你喜欢的顶部背景图片
+headimg:
+  - item: /themes/violet/images/hdbg01.jpg
+  - item: /themes/violet/images/hdbg02.jpg
+  - item: /themes/violet/images/hdbg03.jpg
+  - item: /themes/violet/images/hdbg04.jpg
+
+#关注我
+follow:
+  - class: fa-github
+    url: http://github.com/Neway6655
+  - class: fa-weibo
+    url: http://weibo.com/1869292943/profile?topnav=1&wvr=6 
+  - class: fa-twitter
+    url: https://twitter.com/Neway6655 
+
+#作者信息
+author:
+  link: http://www.zhanxin.info/contact.html
+  img: http://tp2.sinaimg.cn/1832671293/180/40020872447/1
+
+#评论信息
+disqus:
+  config: false 
+  id: 
+
+duoshuo:
+  config: true
+  id: neway6655
