@@ -9,7 +9,8 @@ comment: true
     </div>
     <div class="violet-post">
         <p class="main-article-meta"><time pubdate="{{ rpost.date | date_to_utc | date: '%Y-%m-%d' }}">{{ page.date | date_to_utc | date: "%Y-%m-%d" }}</time></p>
-        <div class="main-article-contant">
+        $('#main-content').toc();
+        <div id="main-content" class="main-article-contant">
             {{ content }}
         </div>
     </div>
@@ -37,3 +38,4 @@ comment: true
         {% endif %}
     {% endif %}
 </div>
+main-article-contant
