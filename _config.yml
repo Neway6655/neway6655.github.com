@@ -39,9 +39,9 @@ timezone:      null
 
 
 #站点基础配置
-title: Neway's Blog.
+title: Neway's Backyard.
 subTitle: Don't find fault. Find a remedy. -- Henry Ford
-description: This is Neway's personal technical blog, to write down the interest things duing working, studying and living. 
+description: This is Neway's backyard about technical flowers, with interested things shared from daily working, studying and living. 
 url: http://neway6655.github.io
 feed: /atom.xml
 

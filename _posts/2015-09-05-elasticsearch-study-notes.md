@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Elasticsearch 学习笔记"
-description: "Elasticsearch的学习笔记"
+description: "Elasticsearch的学习笔记：基本介绍，索引原理，存储，聚合，性能优化等，目前完成的是前两章节，持续更新中……"
 category: elasticsearch
 tags: [search]
 ---
