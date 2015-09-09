@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Elasticsearch 学习笔记系列一"
-description: "Elasticsearch的学习笔记之基本介绍及索引原理"
+description: "Elasticsearch的学习笔记之基础介绍及索引原理分析"
 category: elasticsearch
 tags: [search]
 ---
