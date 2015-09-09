@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Elasticsearch 学习笔记"
-description: "Elasticsearch的学习笔记：基本介绍，索引原理，存储，聚合，性能优化等，目前完成的是前两章节，持续更新中……"
+title: "Elasticsearch 学习笔记系列一"
+description: "Elasticsearch的学习笔记之基本介绍及索引原理"
 category: elasticsearch
 tags: [search]
 ---
@@ -234,13 +234,22 @@ Bitmap的缺点是存储空间随着文档个数线性增长，Roaring bitmaps�
 
 ----------
 
-##存储
+###总结和思考
+Elasticsearch的索引思路:
 
-##聚合运算
+>将磁盘里的东西尽量搬进内存，减少磁盘随机读取次数(同时也利用磁盘顺序读特性)，结合各种奇技淫巧的压缩算法，用及其苛刻的态度使用内存。
 
-##集群
+所以，对于使用Elasticsearch进行索引时需要注意:
 
-##性能优化/实战
+* 不需要索引的字段，一定要明确定义出来，因为默认是自动建索引的
+* 同样的道理，对于String类型的字段，不需要analysis的也需要明确定义出来，因为默认也是会analysis的
+* 选择有规律的ID很重要，随机性太大的ID(比如java的UUID)不利于查询
+
+关于最后一点，个人认为有多个因素:
+
+其中一个(也许不是最重要的)因素: 上面看到的压缩算法，都是对Posting list里的大量ID进行压缩的，那如果ID是顺序的，或者是有公共前缀等具有一定规律性的ID，压缩比会比较高；
+
+另外一个因素: 可能是最影响查询性能的，应该是最后通过Posting list里的ID到磁盘中查找Document信息的那步，因为Elasticsearch是分Segment存储的，根据ID这个大范围的Term定位到Segment的效率直接影响了最后查询的性能，如果ID是有规律的，可以快速跳过不包含该ID的Segment，从而减少不必要的磁盘读次数，具体可以参考这篇[如何选择一个高效的全局ID方案](http://blog.mikemccandless.com/2014/05/choosing-fast-unique-identifier-uuid.html)(评论也很精彩)
 
 ----------
 
