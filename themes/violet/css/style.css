@@ -147,7 +147,7 @@ a:hover {
 }
 .logo, .logo a {
     padding: 50px 0 0 0;
-    width: 500px;
+    width: 600px;
     font-family: 'Spirax', cursive;
     font-size: 52px;
     color: #fefefe;
@@ -302,7 +302,7 @@ a:hover {
     margin: 0 auto;
 }
 .footer .logo {
-    width: 200px;
+    width: 600px;
     float: right;
     text-align: right;
 }

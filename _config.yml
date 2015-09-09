@@ -39,7 +39,7 @@ timezone:      null
 
 
 #站点基础配置
-title: Neway's Backyard.
+title: Neway's Tech Backyard.
 subTitle: Don't find fault. Find a remedy. -- Henry Ford
 description: This is Neway's backyard about technical flowers, with interested things shared from daily working, studying and living. 
 url: http://neway6655.github.io
@@ -70,11 +70,6 @@ follow:
     url: http://weibo.com/1869292943/profile?topnav=1&wvr=6 
   - class: fa-twitter
     url: https://twitter.com/Neway6655 
-
-#作者信息
-author:
-  link: http://www.zhanxin.info/contact.html
-  img: http://tp2.sinaimg.cn/1832671293/180/40020872447/1
 
 #评论信息
 disqus:
