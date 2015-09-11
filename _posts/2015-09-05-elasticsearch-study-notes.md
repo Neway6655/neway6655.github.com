@@ -6,7 +6,7 @@ category: elasticsearch
 tags: [search]
 ---
 
-最近工作在做一个通过Elasticsearch作为底层数据框架提供大数据量(亿级)的实时统计查询的方案，花了些时间学习Elasticsearch的基本理论知识，顺带整理一下，希望能对Elasticsearch感兴趣/想了解的同学有所帮助。
+最近参与到一个基于Elasticsearch作为底层数据框架提供大数据量(亿级)的实时统计查询的方案设计工作，花了些时间学习Elasticsearch的基础理论知识，整理了一下，希望能对Elasticsearch感兴趣/想了解的同学有所帮助。
 同时也希望有发现内容不正确或者有疑问的地方，望指明，一起探讨，学习，进步。
 
 ##介绍
