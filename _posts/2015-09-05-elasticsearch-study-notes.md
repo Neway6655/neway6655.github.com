@@ -1,10 +1,13 @@
 ---
 layout: post
-title: "Elasticsearch 学习笔记系列一"
+title: "Elasticsearch 学习笔记"
 description: "Elasticsearch的学习笔记之基础介绍及索引原理分析"
 category: elasticsearch
 tags: [search]
 ---
+
+最近工作在做一个通过Elasticsearch作为底层数据框架提供大数据量(亿级)的实时统计查询的方案，花了些时间学习Elasticsearch的基本理论知识，顺带整理一下，希望能对Elasticsearch感兴趣/想了解的同学有所帮助。
+同时也希望有发现内容不正确或者有疑问的地方，望指明，一起探讨，学习，进步。
 
 ##介绍
 >Elasticsearch 是一个分布式可扩展的实时搜索和分析引擎.
@@ -250,6 +253,8 @@ Elasticsearch的索引思路:
 其中一个(也许不是最重要的)因素: 上面看到的压缩算法，都是对Posting list里的大量ID进行压缩的，那如果ID是顺序的，或者是有公共前缀等具有一定规律性的ID，压缩比会比较高；
 
 另外一个因素: 可能是最影响查询性能的，应该是最后通过Posting list里的ID到磁盘中查找Document信息的那步，因为Elasticsearch是分Segment存储的，根据ID这个大范围的Term定位到Segment的效率直接影响了最后查询的性能，如果ID是有规律的，可以快速跳过不包含该ID的Segment，从而减少不必要的磁盘读次数，具体可以参考这篇[如何选择一个高效的全局ID方案](http://blog.mikemccandless.com/2014/05/choosing-fast-unique-identifier-uuid.html)(评论也很精彩)
+
+后续再结合实际开发及调优工作分享更多内容，敬请期待！
 
 ----------
 
