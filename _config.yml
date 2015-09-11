@@ -39,9 +39,9 @@ timezone:      null
 
 
 #站点基础配置
-title: Neway's Tech Backyard.
+title: Neway's Playground
 subTitle: Don't find fault. Find a remedy. -- Henry Ford
-description: This is Neway's backyard about technical flowers, with interested things shared from daily working, studying and living. 
+description: About programming technicals, with interested things/experiences shared from daily work and studys. 
 url: http://neway6655.github.io
 feed: /atom.xml
 

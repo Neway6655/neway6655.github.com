@@ -138,7 +138,7 @@ B-Tree通过减少磁盘寻道次数来提高查询性能，Elasticsearch也是�
 这棵树不会包含所有的term，它包含的是term的一些前缀。通过term index可以快速地定位到term dictionary的某个offset，然后从这个位置再往后顺序查找。  
 ![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/index.png)
 
-所以term index不需要存下所有的term，而仅仅是他们的一些前缀，再结合FST(Finite State Transducers)的压缩技术，可以使term index以树的形式缓存在内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数。
+所以term index不需要存下所有的term，而仅仅是他们的一些前缀与Term Dictionary的block之间的映射关系，再结合FST(Finite State Transducers)的压缩技术，可以使term index缓存到内存中。从term index查到对应的term dictionary的block位置之后，再去磁盘上找term，大大减少了磁盘随机读的次数。
 
 这时候爱提问的小明又举手了:"那个FST是神马东东啊?"
 
@@ -146,7 +146,7 @@ B-Tree通过减少磁盘寻道次数来提高查询性能，Elasticsearch也是�
 
 >FSTs are finite-state machines that **map** a **term (byte sequence)** to an arbitrary **output**.
 
-假设我们现在要将mop, moth, pop, star, stop and top映射到他们的字典排序的序号：0，1，2，3，4，5。最简单的做法就是定义个Map<String, Integer>，大家找到自己的位置对应入座就好了，但从内存占用少的角度想想，有没有更优的办法呢？答案就是：**FST**([理论依据在此，但我相信99%的人不会认真看完的](http://www.cs.nyu.edu/~mohri/pub/fla.pdf))
+假设我们现在要将mop, moth, pop, star, stop and top(term index里的term前缀)映射到序号：0，1，2，3，4，5(term dictionary的block位置)。最简单的做法就是定义个Map<String, Integer>，大家找到自己的位置对应入座就好了，但从内存占用少的角度想想，有没有更优的办法呢？答案就是：**FST**([理论依据在此，但我相信99%的人不会认真看完的](http://www.cs.nyu.edu/~mohri/pub/fla.pdf))
 
 ![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/fst.png)
 
