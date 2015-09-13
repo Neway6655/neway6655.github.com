@@ -77,7 +77,7 @@
     <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/jquery-1.8.3.js"></script>
     <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/jquery-scrollTo.js"></script>
     <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/common.js"></script>
-    <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/jquery.toc.js"></script>
+    <script type="text/javascript" src="{{ site.url }}{{ site.themes }}/js/toc.js"></script>
     <script type="text/javascript">
         var headImgArr = [];
         {% for imgsrc in site.headimg %}
@@ -92,7 +92,9 @@
         $("#violet-head").css({
             "background-image": "url(" + headImgArr[item] + ")"
         });
-        $("#main-article-contant").toc();
+        $(document).ready(function() {
+            $('#toc').toc();
+        });
     </script>
     {% if page.comment %}
         {% if site.disqus.config %}
