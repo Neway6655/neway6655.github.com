@@ -83,6 +83,8 @@
       });
     }
 
-    render[settings.showEffect]();
+    if(headers){
+      render[settings.showEffect]();
+    }
   };
 })(jQuery);
