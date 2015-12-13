@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Apache Commons Pool 故事一则"
-description: "对Java中最常用的对象池Apache Commons Pool的简要说明及分析"
+description: "通过租车的故事，简要分析Java中最常用的对象池Apache Commons Pool的工作方式"
 category: commons-pool, java
 tags: [commons-pool]
 ---
