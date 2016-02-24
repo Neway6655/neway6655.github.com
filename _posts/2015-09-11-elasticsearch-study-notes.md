@@ -217,7 +217,7 @@ Bitmap的缺点是存储空间随着文档个数线性增长，Roaring bitmaps�
 
 ![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/block-memory.png)
 
-----------
+-----------
 
 ####联合索引
 
