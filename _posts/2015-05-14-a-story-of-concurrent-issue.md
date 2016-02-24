@@ -10,7 +10,7 @@ tags: [concurrent]
 
 闲话少说，上代码(片段):
 
-{% highlight java %}
+```java
 private List<Long> measurements = new LinkedList<Long>();
 
 public void update(long value) {
@@ -27,24 +27,24 @@ public HistogramMetric calculateMetric() {
     }
     // skip code here ...
 }
-{% endhighlight %}
+```
 
 简单解释下代码: traffic线程调用update方法不断的往measurements这个list里加值, 每隔段时间(10s)会有另一个线程调用calculateMetric方法计算这个时间段内的最大，最小值，总和，平均值等统计数据。
 
 >问题：程序日志报ConcurrentModificationException错误
 
-{% highlight java %}
+```java
 java.util.ConcurrentModificationException: null
         at java.util.LinkedList$ListItr.checkForComodification(LinkedList.java:761) ~[na:1.6.0_85]
         at java.util.LinkedList$ListItr.next(LinkedList.java:696) ~[na:1.6.0_85]
         at com.***.Histogram.calculateMetric(Histogram.java:70)
-{% endhighlight %}
+```
 
 这里第70行就是for这段:
 
-{% highlight java %}
+```java
 for (Long value : snapshotList)
-{% endhighlight %}
+```
 
 
 >分析(一): 为什么会在for这里报ConcurrentModificationException的错误?
@@ -55,10 +55,10 @@ for (Long value : snapshotList)
 
 看贴出来部分的代码，容易发现上面的update方法里有对measurements的add操作, 再结合calculateMetric里的这两句:
 
-{% highlight java %}
+```java
 List<Long> snapshotList = measurements;
 measurements = new LinkedList<Long>();
-{% endhighlight %}
+```
 
 其实snapshotList是直接从measurements赋值过来的, 问题在这?
 ..
@@ -86,7 +86,7 @@ measurements = new LinkedList<Long>();
 
 Fix后的代码:[^3]
 
-{% highlight java %}
+```java
 private List<Long> measurements = new LinkedList<Long>();
 
 private AtomicBoolean mutex = new AtomicBoolean(false);
@@ -123,7 +123,7 @@ public HistogramMetric calculateMetric() {
     }
     // skip code here ...
 }
-{% endhighlight %}
+```
 
 待续补充:对不同方案的进行压力测试.
 

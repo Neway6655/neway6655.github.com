@@ -23,7 +23,7 @@ Elasticsearch 是一个建立在全文搜索引擎 Apache Lucene(TM) 基础上�
 
 先说Elasticsearch的文件存储，Elasticsearch是面向文档型数据库，一条数据在这里就是一个文档，用JSON作为文档序列化的格式，比如下面这条用户数据：
 
-{% highlight json %}
+```json
 {
     "name" :     "John",
     "sex" :      "Male",
@@ -32,7 +32,7 @@ Elasticsearch 是一个建立在全文搜索引擎 Apache Lucene(TM) 基础上�
     "about" :    "I love to go rock climbing",
     "interests": [ "sports", "music" ]
 }
-{% endhighlight %}
+```
 
 用Mysql这样的数据库存储就会容易想到建立一张User表，有balabala的字段等，在Elasticsearch里这就是一个*文档*，当然这个文档会属于一个User的*类型*，各种各样的类型存在于一个*索引*当中。这里有一份简易的将Elasticsearch和关系型数据术语对照表:
 
@@ -44,7 +44,7 @@ Elasticsearch  ⇒ 索引   ⇒ 类型  ⇒ 文档  ⇒ 字段(Fields)
 
 Elasticsearch的交互，可以使用Java API，也可以直接使用HTTP的Restful API方式，比如我们打算插入一条记录，可以简单发送一个HTTP的请求：
 
-{% highlight json %}
+```json
 PUT /megacorp/employee/1
 {
     "name" :     "John",
@@ -53,7 +53,7 @@ PUT /megacorp/employee/1
     "about" :    "I love to go rock climbing",
     "interests": [ "sports", "music" ]
 }
-{% endhighlight %}
+```
 
 更新，查询也是类似这样的操作，具体操作手册可以参见[Elasticsearch权威指南](http://www.learnes.net/data/README.html)
 

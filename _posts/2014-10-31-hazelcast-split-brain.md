@@ -24,7 +24,7 @@ wikipedia上关于脑裂的定义:
 
 其次,Hazelcast集群管理方法(比如heartbeart)有哪些呢,我们在```ClusterManager.java```这个类中可以找到他们:
 
-{% highlight java %}
+```java
 registerPeriodicProcessable(new Processable() {
     public void process() {
         heartBeater();
@@ -45,7 +45,7 @@ registerPeriodicProcessable(new Processable() {
 
 registerPeriodicProcessable(splitBrainHandler,
     splitBrainHandler.getFirstRunDelayMillis(), splitBrainHandler.getNextRunDelayMillis());
-{% endhighlight %}
+```
 
 这些方法都是注册在```ClusterManager.java```这个类中,并由独立的线程控制执行.
 
@@ -87,15 +87,15 @@ master先需要判断是否要做merge,因为hazelcast做merge的策略是小集
 
 ##### Tips: 如何方便查看Hazelcast的集群信息 #####
 
-{% highlight bash %}
+```bash
 curl 'http://{ip}:{port}/hazelcast/rest/cluster' 
-{% endhighlight %}
+```
 
 ip,port分别是hazelcast instance的机器ip和hazelcast的端口.
 
 请求会返回类似下面的一个结果:
 
-{% highlight c %}
+```c
 Members [5] {
     Member [10.20.17.1:5701]
     Member [10.20.17.2:5701]
@@ -103,4 +103,4 @@ Members [5] {
     Member [10.20.17.3:5701]
     Member [10.20.17.5:5701]
  }
-{% endhighlight %}
+```
