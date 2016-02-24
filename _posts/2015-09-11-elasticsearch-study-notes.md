@@ -208,9 +208,14 @@ Bitmap的缺点是存储空间随着文档个数线性增长，Roaring bitmaps�
 
 程序员的世界里除了1024外，65535也是一个经典值，因为它=2^16-1，正好是用2个字节能表示的最大数，一个short的存储单位，注意到上图里的最后一行“If a block has more than 4096 values, encode as a bit set, and otherwise as a simple array using 2 bytes per value”，如果是大块，用节省点用bitset存，小块就豪爽点，2个字节我也不计较了，用一个short[]存着方便。
 
-那为什么用4096来区分大块还是小块呢？
+那为什么用4096来区分采用数组还是bitmap的阀值呢？
 
-个人理解：都说程序员的世界是二进制的，4096*2bytes ＝ 8192bytes < 1KB, 磁盘一次寻道可以顺序把一个小块的内容都读出来，再大一位就超过1KB了，需要两次读。
+这个是从内存大小考虑的，当block块里元素超过4096后，用bitmap更剩空间：
+采用bitmap需要的空间是恒定的: 65536/8 = 8192bytes
+而如果采用short[]，所需的空间是: 2*N(N为数组元素个数)
+小明手指一掐N=4096刚好是边界:
+
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/elasticsearch-study/block-memory.png)
 
 ----------
 
