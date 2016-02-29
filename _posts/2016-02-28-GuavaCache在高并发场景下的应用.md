@@ -10,9 +10,11 @@ tags: [cache,guava]
 Guava是Google提供的一套Java工具包，里面内容的含金量非常高，强烈建议深入研究，这次要看的是Cache的部分，Guava Cache提供了一套非常完善的本地缓存机制，在Guava之前，JDK的concurrentHashMap是经常用做本地缓存的，因为能友好的支持并发，但它毕竟还是个Map，不具备缓存的一些特性，比如缓存过期，缓存数据的加载/刷新等。
 
 ### Guava Cache知识点: 
-关于GuavaCache的官方使用介绍: https://github.com/google/guava/wiki/CachesExplained
+[关于GuavaCache的官方使用介绍](https://github.com/google/guava/wiki/CachesExplained) 
 
-中文翻译版: http://ifeve.com/google-guava-cachesexplained/
+[中文翻译版](http://ifeve.com/google-guava-cachesexplained)
+
+[如何优雅使用Guava Cache](http://www.slideshare.net/IgorAnishchenko/clean-code-with-google-guava-jee-conf)
 
 ### 高并发场景下如何使用:
 使用缓存，就存在缓存数据一致性的问题，和缓存数据的更新敏感度的问题，这个就是缓存的数据更新问题。
