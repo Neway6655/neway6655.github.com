@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Redis内存优化实践"
-description: ""
+description: "近做的一个系统大量使用redis，我们将大量的用户信息存放在redis中，内存一申请就是几百G，体量也是相当庞大。所以我们也在不断的想方法优化减少redis的内存使用，把我们的优化实践也分享出来"
 category: redis
 tags: [redis, memory optimization]
 ---
@@ -62,7 +62,7 @@ redis考虑到redisObject这个庞大的对象占用过多内存的因素，将1
 
 注: 以上都是针对Redis 3.2之前版本的分析，因为Redis 3.2对内存优化这部分做了很多改进，具体的改进点还未了解清楚。
 
-最后，对坚持看完的同学送上一个非常有用的Redis内存分析工具: [!redis-rdb-tools](https://github.com/sripathikrishnan/redis-rdb-tools)，结合bgsave的dump文件，分析redis里的数据，可以看到底层存储是用的什么数据结构，占用了多少空间等信息。
+最后，对坚持看完的同学送上一个非常有用的Redis内存分析工具: [redis-rdb-tools](https://github.com/sripathikrishnan/redis-rdb-tools)，结合bgsave的dump文件，分析redis里的数据，可以看到底层存储是用的什么数据结构，占用了多少空间等信息。
 
 
 
