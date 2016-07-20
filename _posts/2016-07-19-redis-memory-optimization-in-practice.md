@@ -36,7 +36,10 @@ typedef struct redisObject {
 但如果使用了上面提到的ziplist，redis在ziplist里对数字类型，做了一些优化。
 
 我们先看看ziplist的大致结构：
-![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/redis-memory-optimization/ziplist.png)
+
+```
+<zlbytes><zltail><zllen><entry><entry>...<entry><zlend>
+```
 
 ziplist是一个连续的内存数组，每个entry就是里面的数据内容，针对hash结构，每个field和value都分别是一个entry，而每个entry又分为2个header和content，一个header是前一个entry的长度，另一个header是这个entry的encoding及string content的长度(如果是string的话)。
 
