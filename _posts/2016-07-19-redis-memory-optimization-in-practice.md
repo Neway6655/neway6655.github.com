@@ -16,6 +16,8 @@ Redis针对Hash，List，ZSet都实现了ziplist的压缩存储，可以通过�
 
 注意:虽然这个ziplist是否启用做成了配置参数，但对这个配置参数的修改要谨慎，因为ziplist是一个连续的数组空间，查找效率O(n)，如果设置元素超过512太多，可能导致查找效率降低，反而影响性能。那为什么Redis会采用512*64bytes这样的默认配置呢？据说是这个大小可以被加载进CPU的Cache里，所以即使不是O(1)，查找效率也是很快的。
 
+如果List里元素太多，超过了512的限制，无法采用ziplist的压缩方式存储，会非常消耗内存，有个做法是在应用层将list里多个元素，比如多个string，并成一个‘大’的元素，这样可以减少list里的元素数量，由于list里每个元素都有前后指针等额外的内存开销，这样也可以节省大量的内存空间。当然前提是需要应用层自己对list里的元素做合并和拆解，应用本身的复杂度也会升高不少。
+
 ##### 优先使用数字类型，比String类型省空间
 在Redis的内部，不管是数字类型，String类型，都会统一用一个叫redisObject的对象做一层封装:
 
@@ -31,7 +33,16 @@ typedef struct redisObject {
 ```
 可见，一个简简单单的"hello world"在redis里都不是直接11个bytes就搞定的，还有很多附加的属性，比如引用计数(内存回收)refcount，lru清理等信息。
 
-但如果使用了上面提到的ziplist，redis对ziplist里元素做了裁剪，让数据更紧凑，所以针对数字，做了一些特别处理：
+但如果使用了上面提到的ziplist，redis在ziplist里对数字类型，做了一些优化。
+
+我们先看看ziplist的大致结构：
+![Alt text](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/redis-memory-optimization/ziplist.png)
+
+ziplist是一个连续的内存数组，每个entry就是里面的数据内容，针对hash结构，每个field和value都分别是一个entry，而每个entry又分为2个header和content，一个header是前一个entry的长度，另一个header是这个entry的encoding及string content的长度(如果是string的话)。
+
+为什么需要知道长度？因为这里对每个entry的查找都是通过计算数组的下标位置来查找的，而string是变长的，所以想获取一个string的entry的内容，必须知道这个string的长度。
+
+而int数字就不一样了，数字都是固定长度的，所以，redis在ziplist里对数字类型做了特殊处理：
 
 ```
 * |11000000| - 1 byte
@@ -49,7 +60,7 @@ typedef struct redisObject {
 * 1 to 13 because 0000 and 1111 can not be used, so 1 should be
 * subtracted from the encoded 4 bit value to obtain the right value.
 ```
-先用1byte来表示不同的encode，针对大小不同的数字，分别采用不一样的内存空间来存储，比如0-127就是2个字节，128-32768就是4个字节等等。所以算下来，和String相比，大部分情况下更省内存。
+先用1byte来表示不同的encoding。针对大小不同的数字，分别采用不一样的内存空间来存储，比如0-127就是2个字节，128-32768就是4个字节等等。所以算下来，和String相比，使用int类型相对会更省内存。
 
 另外，如果不是采用ziplist的存储方式，而是直接用redisObject这样相对庞大的对象存储呢？
 
