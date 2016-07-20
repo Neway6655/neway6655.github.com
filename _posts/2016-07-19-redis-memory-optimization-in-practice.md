@@ -12,9 +12,9 @@ tags: [redis, memory optimization]
 因为是存放用户维度的数据，用户id(uid)往往会作为key，而一个用户会有多个信息，比如年龄，生日等等，比较容易想到的存储结构会采用Hash，将一个用户的多个信息作为hash里的不同field来存放
 
 ##### 善用Hash，List，ZSet的ziplist压缩特性
-Redis针对Hash，List，ZSet都实现了ziplist的压缩存储，可以通过配置最大元素不超过512，每个元素大小不超过64bytes，来判断是否要采用[!ziplist压缩格式](http://redisbook1e-gallery.readthedocs.io/en/latest/7-ziplist.html)存储。
+Redis针对Hash，List，ZSet都实现了ziplist的压缩存储，可以通过配置最大元素不超过512，每个元素大小不超过64bytes，来判断是否要采用[ziplist压缩格式](http://redisbook1e-gallery.readthedocs.io/en/latest/7-ziplist.html)存储。
 
-注意:虽然这个ziplist是否启用做成了配置参数，但对这个配置参数的修改要谨慎，因为ziplist是一个连续的数组空间，查找效率不是O(1)的，如果设置元素超过512太多，可能导致查找效率降低，反而影响性能。那为什么Redis会采用512*64bytes这样的默认配置呢？据说是这个大小可以被加载进CPU的Cache里，所以即使不是O(1)，查找效率也是很快的。
+注意:虽然这个ziplist是否启用做成了配置参数，但对这个配置参数的修改要谨慎，因为ziplist是一个连续的数组空间，查找效率O(n)，如果设置元素超过512太多，可能导致查找效率降低，反而影响性能。那为什么Redis会采用512*64bytes这样的默认配置呢？据说是这个大小可以被加载进CPU的Cache里，所以即使不是O(1)，查找效率也是很快的。
 
 ##### 优先使用数字类型，比String类型省空间
 在Redis的内部，不管是数字类型，String类型，都会统一用一个叫redisObject的对象做一层封装:
