@@ -83,6 +83,8 @@ typedef struct redisObject {
 
 如果还有其他的内存优化方案，欢迎讨论分享。
 
+![image](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/redis-memory-optimization/cartoon-owl.png)
+
 
 
 
