@@ -48,7 +48,7 @@ ziplist是一个连续的内存数组，每个entry就是里面的数据内容�
 * 1 to 13 because 0000 and 1111 can not be used, so 1 should be
 * subtracted from the encoded 4 bit value to obtain the right value.
 ```
-先用1byte来表示不同的encoding，针对大小不同的数字，分别采用不一样的内存空间来存储，比如0-127就是2个字节，128-32768就是4个字节。一个细节，对于0-12这几个数字甚至都放进了encoding(1111xxxx)的header里，这样还可以再省下来content这一个字节。(为了省内存，Redis也是做到极致了)。所以算下来，和String相比，使用int类型相对会更省内存。
+先用1byte来表示不同的encoding，针对大小不同的数字，分别采用不一样的内存空间来存储，比如13-127就是1个字节，128-32768就是2个字节。一个细节，对于0-12这几个数字甚至都放进了encoding(1111xxxx)的header里，这样还可以再省下来content这一个字节。(为了省内存，Redis也是做到极致了)。所以算下来，和String相比，使用int类型相对会更省内存。
 
 ##### 用不了ziplist，如何省内存
 
