@@ -16,24 +16,9 @@ Redis针对Hash，List，ZSet都实现了ziplist的压缩存储，可以通过�
 
 注意:虽然这个ziplist是否启用做成了配置参数，但对这个配置参数的修改要谨慎，因为ziplist是一个连续的数组空间，查找效率O(n)，如果设置元素超过512太多，可能导致查找效率降低，反而影响性能。那为什么Redis会采用512*64bytes这样的默认配置呢？据说是这个大小可以被加载进CPU的Cache里，所以即使不是O(1)，查找效率也是很快的。
 
-另外，如果一个List里的元素太多，超过了512的限制，无法采用ziplist的压缩方式存储，将会非常消耗内存，因为list里每个元素都有前后指针等额外的内存开销，有个做法是在应用层将list里多个元素，比如多个string，合并成一个‘大’的元素，这样可以减少list里的元素数量，从而减少额外的前后指针等信息的内存开销，节省大量内存空间。当然前提是需要应用层自己对list里的元素做合并和拆解，应用本身的复杂度也会升高不少。
 
-##### 优先使用数字类型，比String类型省空间
-在Redis的内部，不管是数字类型，String类型，都会统一用一个叫redisObject的对象做一层封装:
-
-```
-typedef struct redisObject {
-    unsigned type:4;
-    unsigned encoding:4;
-    unsigned lru:LRU_BITS; /* lru time (relative to server.lruclock) */
-    int refcount;
-    void *ptr;
-} robj;
-
-```
-可见，一个简简单单的"hello world"在redis里都不是直接11个bytes就搞定的，还有很多附加的属性，比如引用计数(内存回收)refcount，lru清理等信息。
-
-但如果使用了上面提到的ziplist，redis在ziplist里对数字类型，做了一些优化。
+##### ziplist里优先使用数字类型，比String类型省空间
+redis在ziplist里对数字类型，做了一些优化。
 
 我们先看看ziplist的大致结构：
 
@@ -63,21 +48,40 @@ ziplist是一个连续的内存数组，每个entry就是里面的数据内容�
 * 1 to 13 because 0000 and 1111 can not be used, so 1 should be
 * subtracted from the encoded 4 bit value to obtain the right value.
 ```
-先用1byte来表示不同的encoding。针对大小不同的数字，分别采用不一样的内存空间来存储，比如0-127就是2个字节，128-32768就是4个字节等等。所以算下来，和String相比，使用int类型相对会更省内存。
+先用1byte来表示不同的encoding，针对大小不同的数字，分别采用不一样的内存空间来存储，比如0-127就是2个字节，128-32768就是4个字节。一个细节，对于0-12这几个数字甚至都放进了encoding(1111xxxx)的header里，这样还可以再省下来content这一个字节。(为了省内存，redis也是做到极致了)。所以算下来，和String相比，使用int类型相对会更省内存。
 
-另外，如果不是采用ziplist的存储方式，而是直接用redisObject这样相对庞大的对象存储呢？
+##### 用不了ziplist，如何省内存
 
-如果能用数字，还是尽量使用数字类型，并且是小于10000的数字最好，因为：
+对于List结构，如果List里的元素太多，超过了512的限制，无法采用ziplist的压缩方式存储，将会非常消耗内存，因为list里每个元素都有前后指针等额外的内存开销，有个做法是在应用层将list里多个元素，比如多个string，合并成一个‘大’的元素，这样可以减少list里的元素数量，从而减少额外的前后指针等信息的内存开销，节省大量内存空间。当然前提是需要应用层自己对list里的元素做合并和拆解，应用本身的复杂度也会升高不少。
+
+另外，在Redis的内部，不管是数字类型，String类型，都会统一用一个叫redisObject的对象做一层封装:
+
+```
+typedef struct redisObject {
+    unsigned type:4;
+    unsigned encoding:4;
+    unsigned lru:LRU_BITS; /* lru time (relative to server.lruclock) */
+    int refcount;
+    void *ptr;
+} robj;
+
+```
+可见，一个简简单单的"age"在redis里都不是直接3个bytes就搞定的，还有很多附加的属性，比如引用计数(内存回收)refcount，lru清理等信息。
+
+但redis对于小于10000的数字，做了一个小优化：
 
 ```
 #define OBJ_SHARED_INTEGERS 10000
 ```
 redis考虑到redisObject这个庞大的对象占用过多内存的因素，将10000以下数字的redisObject做了一个对象池，其他地方都通过指针(4/8bytes)引用这个池里的redisObject，而不是各自存一份。
 
+所以，一些标识类的数据，用数字(<10000)来标识能更省内存(比如用20代替age，不要问为什么用20)，但阅读上就没那么直观容易理解了。
+
 注: 以上都是针对Redis 3.2之前版本的分析，因为Redis 3.2对内存优化这部分做了很多改进，具体的还需要进一步了解清楚，这里不展开了。
 
 最后，对坚持看完的同学送上一个非常有用的Redis内存分析工具: [redis-rdb-tools](https://github.com/sripathikrishnan/redis-rdb-tools)，结合bgsave的dump文件，分析redis里的数据，可以看到底层存储是用的什么数据结构，占用了多少空间等信息。
 
+如果还有其他的内存优化方案，欢迎讨论分享。
 
 
 
