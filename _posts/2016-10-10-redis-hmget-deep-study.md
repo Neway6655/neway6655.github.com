@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "关于Redis的hmget操作复杂度研究"
+title: "Redis的hmget操作复杂度问题"
 description: "hmget的操作复杂度真的是O(N)吗？"
 category: redis
 tags: [redis]
@@ -38,7 +38,7 @@ void hmgetCommand(redisClient *c) {
 看到代码里最后其实是遍历各个请求的fields，调用```addHashFieldToReply```方法：
 
 ```
-	...
+...
 	if (o->encoding == REDIS_ENCODING_ZIPLIST) {
         ...
     } else if (o->encoding == REDIS_ENCODING_HT) {
@@ -50,7 +50,7 @@ void hmgetCommand(redisClient *c) {
 抱着这个想法进一步看进第一个if里的代码：
 
 ```
-	if (o->encoding == REDIS_ENCODING_ZIPLIST) {
+if (o->encoding == REDIS_ENCODING_ZIPLIST) {
         unsigned char *vstr = NULL;
         unsigned int vlen = UINT_MAX;
         long long vll = LLONG_MAX;
@@ -80,7 +80,7 @@ void hmgetCommand(redisClient *c) {
 第一步，看看```hashTypeGetFromZiplist```里是如何查找field的:
 
 ```
-	...
+...
     fptr = ziplistIndex(zl, ZIPLIST_HEAD);
     if (fptr != NULL) {
         fptr = ziplistFind(fptr, field->ptr, sdslen(field->ptr), 1);
@@ -92,10 +92,10 @@ void hmgetCommand(redisClient *c) {
     }
     ...
 ```
-大致可以看出，查找的过程是从ziplist的第一个entry开始，通过```ziplistFind```方法查找field，然后推算出field的value在ziplist的位置。```ziplistFind```方法源码:
+大致可以看出，查找的过程是从ziplist的第一个entry开始，通过```ziplistFind```方法查找field，然后推算出field的value在ziplist的位置。```ziplistFind```方法源码(ziplist.c):
 
 ```
-	...
+...
 	while (p[0] != ZIP_END) {
 		...
 		if (len == vlen && memcmp(q, vstr, vlen) == 0) {
