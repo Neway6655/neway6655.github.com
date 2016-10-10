@@ -39,11 +39,11 @@ void hmgetCommand(redisClient *c) {
 
 ```
 ...
-	if (o->encoding == REDIS_ENCODING_ZIPLIST) {
-        ...
-    } else if (o->encoding == REDIS_ENCODING_HT) {
-        ...
-    }
+if (o->encoding == REDIS_ENCODING_ZIPLIST) {
+	...
+} else if (o->encoding == REDIS_ENCODING_HT) {
+	...
+}
 ```
 看到这段```if/else```似乎明白了什么，之前的文章[Redis内存优化实践](http://neway6655.github.io/redis/2016/07/19/redis-memory-optimization-in-practice.html)里说到的关于hash底层的ziplist数据结构，其实就是一个连续空间的数组，而数组的查找是需要遍历里面的元素的，和hashtable的O(1)不同。而我们采用的也正是ziplist的压缩结构 (由于数据量太大，ziplist结构可以省大量内存，节省成本)。所以，对于ziplist的hmget操作复杂度应该不是O(N)。
 
@@ -65,8 +65,7 @@ if (o->encoding == REDIS_ENCODING_ZIPLIST) {
                 addReplyBulkLongLong(c, vll);
             }
         }
-
-    } 
+} 
 ```
 看到这里，我们还是先回顾一下ziplist的数据结构吧：
 
@@ -81,27 +80,28 @@ if (o->encoding == REDIS_ENCODING_ZIPLIST) {
 
 ```
 ...
-    fptr = ziplistIndex(zl, ZIPLIST_HEAD);
-    if (fptr != NULL) {
+fptr = ziplistIndex(zl, ZIPLIST_HEAD);
+if (fptr != NULL) {
         fptr = ziplistFind(fptr, field->ptr, sdslen(field->ptr), 1);
         if (fptr != NULL) {
             /* Grab pointer to the value (fptr points to the field) */
             vptr = ziplistNext(zl, fptr);
             redisAssert(vptr != NULL);
         }
-    }
-    ...
+}
+...
 ```
 大致可以看出，查找的过程是从ziplist的第一个entry开始，通过```ziplistFind```方法查找field，然后推算出field的value在ziplist的位置。```ziplistFind```方法源码(ziplist.c):
 
 ```
 ...
-	while (p[0] != ZIP_END) {
-		...
-		if (len == vlen && memcmp(q, vstr, vlen) == 0) {
-        		return p;
-        }
+while (p[0] != ZIP_END) {
 	...
+	if (len == vlen && memcmp(q, vstr, vlen) == 0) {
+        	return p;
+    }
+}
+...
 ```
 终于，猜测是对的，ziplist对field的查找就是遍历比较的方式。所以整个hmget里的field的查找是O(M)复杂度，M为hash的field总数[1]，再根据field找出对应的value值就只是一个根据长度取出具体值的过程。
 
