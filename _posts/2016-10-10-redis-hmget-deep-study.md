@@ -105,7 +105,7 @@ while (p[0] != ZIP_END) {
 }
 ...
 ```
-果然，猜测是对的，ziplist对field的查找就是遍历比较的方式。所以hmget对一个field的查找是O(M)复杂度，M为存储在hash里的实际field总数[1]，再根据field找出对应的value值就只是一个根据长度取出具体值的过程。
+果然，猜测是对的，ziplist对field的查找就是遍历比较的方式。所以hmget对一个field的查找是O(M)复杂度，M为存储在hash里的实际field总数[^1]，再根据field找出对应的value值就只是一个根据长度取出具体值的过程。
 
 最后，对于ziplist结构的hmget操作复杂度应该是O(N*M)，N为请求的fields数量，M为这个hash里一共有的fields数量。而对于hashtable结构的hmget操作自然是O(N)了。
 
@@ -120,7 +120,7 @@ while (p[0] != ZIP_END) {
 ##### 总结：“知己知彼，方能百战百胜”
 对于Hash，Set等数据结构，由于Redis所采用的底层的存储结构可能出现不同，对一些操作的使用需要格外小心。而且这个底层存储结构在数据发生变化后可能还会自我调整，比如hash的entry个数超过512(默认值)后，会从ziplist变成hashtable结构等，这些变化，不仅对存储有影响，对一些操作的效率也一样有影响，所以开发同学必须非常了解自己的应用所存放在redis的数据变化情况，避免掉坑。
 
-[1]: M为存储在hash里的实际field总数, 细心的读者会发现，entry既有field也有value，遍历的话应该是field个数的2倍，这里Antirez做了一个小手脚，既然entry是field1,value1,field2,value2这样成对出现，在遍历的fields的时候，可以跳跃式比较，节省了一半。可见，Antirez对待这些细节也是非常认真的。
+[^1]: M为存储在hash里的实际field总数, 细心的读者会发现，entry既有field也有value，遍历的话应该是field个数的2倍，这里Antirez做了一个小手脚，既然entry是field1,value1,field2,value2这样成对出现，在遍历的fields的时候，可以跳跃式比较，节省了一半。可见，Antirez对待这些细节也是非常认真的。
 
 ------------
 
