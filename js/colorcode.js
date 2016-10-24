@@ -1,10 +1,10 @@
 /** 
  * @name: 		ColorCode
- * @descript:	1, base on DlHightlight(Mihai Bazon, http://mihai.bazon.net/blog)
+ * @descript:	1, base on DlHightlight(Mihai Bazon, https://mihai.bazon.net/blog)
  * 				2, fix IE bug 
  * 				3, set more for lang-css.js
  * 				4, change the style
- * @author:     pizn( zhanxin.lin , http://pizn.net)
+ * @author:     pizn( zhanxin.lin , https://pizn.net)
  * @other:      Thanks to Mihai Bazon's DlHghtlight.
  **/
  

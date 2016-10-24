@@ -1,11 +1,11 @@
 /*!
  * jQuery UI 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI
+ * https://docs.jquery.com/UI
  */
 (function( $, undefined ) {
 
@@ -241,7 +241,7 @@ $(function() {
 	$.support.selectstart = "onselectstart" in div;
 
 	// set display to none to avoid a layout bug in IE
-	// http://dev.jquery.com/ticket/4014
+	// https://dev.jquery.com/ticket/4014
 	body.removeChild( div ).style.display = "none";
 });
 
@@ -320,11 +320,11 @@ $.extend( $.ui, {
 /*!
  * jQuery UI Widget 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Widget
+ * https://docs.jquery.com/UI/Widget
  */
 (function( $, undefined ) {
 
@@ -335,7 +335,7 @@ if ( $.cleanData ) {
 		for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
 			try {
 				$( elem ).triggerHandler( "remove" );
-			// http://bugs.jquery.com/ticket/8235
+			// https://bugs.jquery.com/ticket/8235
 			} catch( e ) {}
 		}
 		_cleanData( elems );
@@ -349,7 +349,7 @@ if ( $.cleanData ) {
 					$( "*", this ).add( [ this ] ).each(function() {
 						try {
 							$( this ).triggerHandler( "remove" );
-						// http://bugs.jquery.com/ticket/8235
+						// https://bugs.jquery.com/ticket/8235
 						} catch( e ) {}
 					});
 				}
@@ -592,11 +592,11 @@ $.Widget.prototype = {
 /*!
  * jQuery UI Mouse 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Mouse
+ * https://docs.jquery.com/UI/Mouse
  *
  * Depends:
  *	jquery.ui.widget.js
@@ -754,11 +754,11 @@ $.widget("ui.mouse", {
 /*
  * jQuery UI Position 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Position
+ * https://docs.jquery.com/UI/Position
  */
 (function( $, undefined ) {
 
@@ -1052,11 +1052,11 @@ if ( !$.offset.setOffset ) {
 /*
  * jQuery UI Draggable 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Draggables
+ * https://docs.jquery.com/UI/Draggables
  *
  * Depends:
  *	jquery.ui.core.js
@@ -1877,11 +1877,11 @@ $.ui.plugin.add("draggable", "zIndex", {
 /*
  * jQuery UI Droppable 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Droppables
+ * https://docs.jquery.com/UI/Droppables
  *
  * Depends:
  *	jquery.ui.core.js
@@ -2173,11 +2173,11 @@ $.ui.ddmanager = {
 /*
  * jQuery UI Resizable 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Resizables
+ * https://docs.jquery.com/UI/Resizables
  *
  * Depends:
  *	jquery.ui.core.js
@@ -2410,7 +2410,7 @@ $.widget("ui.resizable", $.ui.mouse, {
 		this.resizing = true;
 		this.documentScroll = { top: $(document).scrollTop(), left: $(document).scrollLeft() };
 
-		// bugfix for http://dev.jquery.com/ticket/1749
+		// bugfix for https://dev.jquery.com/ticket/1749
 		if (el.is('.ui-draggable') || (/absolute/).test(el.css('position'))) {
 			el.css({ position: 'absolute', top: iniPos.top, left: iniPos.left });
 		}
@@ -2981,11 +2981,11 @@ var isNumber = function(value) {
 /*
  * jQuery UI Selectable 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Selectables
+ * https://docs.jquery.com/UI/Selectables
  *
  * Depends:
  *	jquery.ui.core.js
@@ -3248,11 +3248,11 @@ $.extend($.ui.selectable, {
 /*
  * jQuery UI Sortable 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Sortables
+ * https://docs.jquery.com/UI/Sortables
  *
  * Depends:
  *	jquery.ui.core.js
@@ -4329,11 +4329,11 @@ $.extend($.ui.sortable, {
 /*
  * jQuery UI Autocomplete 1.8.18
  *
- * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2011, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Autocomplete
+ * https://docs.jquery.com/UI/Autocomplete
  *
  * Depends:
  *	jquery.ui.core.js
@@ -4536,7 +4536,7 @@ $.widget( "ui.autocomplete", {
 				}
 			})
 			.zIndex( this.element.zIndex() + 1 )
-			// workaround for jQuery bug #5781 http://dev.jquery.com/ticket/5781
+			// workaround for jQuery bug #5781 https://dev.jquery.com/ticket/5781
 			.css({ top: 0, left: 0 })
 			.hide()
 			.data( "menu" );
@@ -4774,11 +4774,11 @@ $.extend( $.ui.autocomplete, {
  * it for the next release. You're welcome to give it a try anyway and give us feedback,
  * as long as you're okay with migrating your code later on. We can help with that, too.
  *
- * Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+ * Copyright 2010, AUTHORS.txt (https://jqueryui.com/about)
  * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
+ * https://jquery.org/license
  *
- * http://docs.jquery.com/UI/Menu
+ * https://docs.jquery.com/UI/Menu
  *
  * Depends:
  *	jquery.ui.core.js

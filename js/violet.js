@@ -6,7 +6,7 @@
 var violet = violet || {
     VERSION: '2.0',
     checkViolet: function() {
-        var str = document.domain, rule = /^(www\.pizn\.me)?$/, url = "http://www.pizn.me", cookie_Key="__isViole__", cookie_value="Y";
+        var str = document.domain, rule = /^(www\.pizn\.me)?$/, url = "https://www.pizn.me", cookie_Key="__isViole__", cookie_value="Y";
         if(!rule.test(str)) {
             //document.cookie = cookie_key+'='+cookie_value+';expires='+new Date(new Date().getTime()+3600*24*30*1000).toUTCString();
             window.location.replace(url);
