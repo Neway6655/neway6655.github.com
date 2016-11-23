@@ -68,12 +68,14 @@ typedef struct redisObject {
 ```
 可见，一个简简单单的"age"在Redis里都不是直接3个bytes就搞定的，还有很多附加的属性，比如引用计数(内存回收)refcount，lru清理等信息。
 
-但Redis对于小于10000的数字，做了一个小优化：
+而Redis对整型数字做了一定优化，如果发现是整型的数字，ptr本身就是那个数字的值，而不在是指向某个值的指针，这样就节省了一个指针4bytes的空间。
+
+同时Redis对于小于10000的数字，还做了一个小优化：
 
 ```
 #define OBJ_SHARED_INTEGERS 10000
 ```
-考虑到redisObject这个庞大的对象占用过多内存的因素，Redis内部将10000以下数字的redisObject做了一个对象池，其他地方都通过指针(4/8bytes)引用这个池里的redisObject，而不是各自存一份。
+考虑到redisObject这个庞大的对象占用过多内存的因素，Redis内部将10000以下数字的redisObject做了一个对象池，需要的地方可以直接用这个池里的redisObject，而不是自存一份。
 
 所以，一些标识类的数据，用数字(<10000)来标识能更省内存(比如用20代替age，不要问为什么用20)，但阅读上就没那么直观容易理解了。
 
