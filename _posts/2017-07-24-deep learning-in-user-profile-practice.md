@@ -2,8 +2,8 @@
 layout: post
 title: "深度学习在用户标签模型中的应用"
 description: "深度学习在用户标签模型中的应用尝试"
-category: deep learning, user profile
-tags: [deep learning,user profile]
+category: deep learning
+tags: [deep learning]
 ---
 
 最近花了些时间学习Deep Learning，对Deep Learning有了一些理解，于是想结合自己的工作内容，尝试将Deep Learning用在用户画像的标签模型中，看看效果，于是有了这篇文章。文章主要针对如何将Deep Learning运用在用户标签模型中，对于Deep Learning的基础概念和一些基本模型不会做过多介绍。自己也属于Deep Learning的入门阶段，有理解有误的地方，欢迎大家指正。
