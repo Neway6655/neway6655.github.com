@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Deep Learning在用户标签模型中的应用尝试"
-description: "Deep Learning在用户标签模型中的应用尝试"
+title: "深度学习在用户标签模型中的应用"
+description: "深度学习在用户标签模型中的应用尝试"
 category: deep learning, user profile
 tags: [deep learning,user profile]
 ---
