@@ -78,5 +78,5 @@ disqus:
   id: 
 
 duoshuo:
-  config: true
+  config: false
   id: neway6655
