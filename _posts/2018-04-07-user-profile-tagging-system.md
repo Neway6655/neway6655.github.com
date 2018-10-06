@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "电商用户标签服务系统建设及演进"
-description: ""
+description: "电商背景下用户标签服务系统的建设及演进过程详解"
 category: user-profile
 tags: [user-profile]
 ---
