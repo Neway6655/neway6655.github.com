@@ -110,9 +110,9 @@ tags: [user-profile]
 
 回顾系统在1.0和2.0两个阶段，都是围绕业务根据经验筛选人群，建立标签而建设的，而业务的最终需求，是要找出符合某些运营场景的人群，实现运营目标的最大化。例如前面例子中描述的“最近一周有浏览Nike运动鞋但没有购买的人”，背后的需求其实是找出“最近对Nike运动鞋有购买倾向的人”，放入到对应的广告/Push等运营活动中，达成活动的运营目标，可能是销售额，转化率，回访率等，至于如何找出最近有购买倾向的人呢？根据**业务经验**，认为“最近一周有浏览过但又没有购买的人”是一个潜在的购买客群，但并不一定是最精准的人群，因为在现在这样一个智能时代，通过数据的积累，算法的挖掘，借助**机器学习建立模型**，可找出更合适的人群，满足运营目标的最大化需求，这就是3.0的智选标签系统。
 
-3.0的系统整体架构图：
+3.0的标签模型框架：
 
-![Architecture Overview 3.0](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/user-profile-system/Architecture_overview_v3.png)
+![Architecture Overview 3.0](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/user-profile-system/user_profile_model_overview.png)
 
 * 用户特征池：为标签模型构造用户全方位的特征数据，包括用户基础信息特征，用户设备信息特征，用户访问/搜索/购买等行为特征，用户品牌/品类行为特征等。
 * 标签模型：基于Spark ML的机器学习模型和Tensorflow的深度模型，从业务运营场景抽象出用户标签需求建立模型。
