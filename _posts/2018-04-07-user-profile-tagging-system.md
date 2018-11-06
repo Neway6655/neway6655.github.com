@@ -114,10 +114,7 @@ tags: [user-profile]
 
 ![Architecture Overview 3.0](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/user-profile-system/user_profile_model_overview.png)
 
-* 用户特征池：为标签模型构造用户全方位的特征数据，包括用户基础信息特征，用户设备信息特征，用户访问/搜索/购买等行为特征，用户品牌/品类行为特征等。
-* 标签模型：基于Spark ML的机器学习模型和Tensorflow的深度模型，从业务运营场景抽象出用户标签需求建立模型。
-* 智选标签：根据运营场景需求，选择合适的模型构造用户标签。
-
-标签建模的整体工作流如下：
-
-![Architecture Overview 3.0](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/user-profile-system/model_tagging_workflow.png)
+* 用户特征池：为标签模型构造用户全方位的特征数据，包括用户基础信息特征，用户设备信息特征，用户访问/搜索/购买等行为特征，以及用户品牌/品类行为特征等。
+* 用户行为预测模型：基于Spark ML的机器学习模型和Tensorflow的深度学习模型，构建用户基础行为预测模型。
+* 用户运营策略：运营策略的目标考虑因素比较多，现阶段主要以人工+模型的方式制定运营策略。
+* 效果评估：包括模型层面的评估指标，以及模型应用场景下的业务指标，离线验证模型的有效性，再结合运营策略通过线上ABTest进行验证最终运营效果。
