@@ -8,10 +8,10 @@ tags: [redis]
 
 目前负责的系统，强依赖于Redis，高并的接口压力和瓶颈都主要集中在Redis上，对Redis的操作基本都是hmget，最近遇到了一个性能瓶颈，花了些时间对hmget的源码做了些分析，以此记录下来，供大家参考。
 
-##### 遇到的性能问题
+## 遇到的性能问题
 先简单介绍下背景，系统在使用hmget的时候，正常情况下都是请求10个不到的fields，但有些特殊场景会出现一次hmget100多个fields，甚至严重时会出现200个fields，我们在压测时发现一次请求200个fields的性能非常差，本以为200个fields的性能应该比10个fields的性能差1/20左右，但测试的结果却远不止。
 
-##### 难道hmget的操作复杂度不是O(N)?
+## 难道hmget的操作复杂度不是O(N)?
 [Redis官网](http://redis.io/commands/hmget)对于hmget的操作复杂度白纸黑字写得很清楚就是O(N)，N为请求的fields个数。
 
 于是抱着怀疑的心态翻出Redis关于hmget的源码(Redis 3.0分支，t_hash.c)：
@@ -109,7 +109,7 @@ while (p[0] != ZIP_END) {
 
 最后，对于ziplist结构的hmget操作复杂度应该是O(N*M)，N为请求的fields数量，M为这个hash里一共有的fields数量。而对于hashtable结构的hmget操作自然是O(N)了。
 
-##### 问题怎么解决
+## 问题怎么解决
 由于用了ziplist的结构，O(N*M)的复杂度就摆在那里，N和M也没办法减少。换个角度，既然要查那么多fields(在我们的业务场景里，很多fields可能是不存在/没数据的)，所以我们能不能一次hgetall把M个fields都拿出来，应用再自己和N做匹配过滤，那关于hgetall的实现，有兴趣的同学可以研究下，效率比hmget 200个fields高很多。
 
 使用hgetall会不会有其他风险？存储在hash里的fields一旦增多了，效率也会降低；数据量大了，超过一个MTU包大小，效率也会降低；fields数量超过512个，ziplist变hashtable，怎么办？
@@ -117,7 +117,7 @@ while (p[0] != ZIP_END) {
 我们的做法，如果一次请求30个以下fields，继续使用hmget，75%的情况都是这种正常的请求；剩下的超过30个fields，就用hgetall一次拿出来，交给应用处理。同时，需要定期检查redis里的hash数据的长度，防止长度慢慢增加而出现其他的问题。
 
 
-##### 总结：“知己知彼，方能百战百胜”
+## 总结：“知己知彼，方能百战百胜”
 对于Hash，Set等数据结构，由于Redis所采用的底层的存储结构可能出现不同，对一些操作的使用需要格外小心。而且这个底层存储结构在数据发生变化后可能还会自我调整，比如hash的entry个数超过512(默认值)后，会从ziplist变成hashtable结构等，这些变化，不仅对存储有影响，对一些操作的效率也一样有影响，所以开发同学必须非常了解自己的应用所存放在redis的数据变化情况，避免掉坑。
 
 [^1]: M为存储在hash里的实际field总数, 细心的读者会发现，entry既有field也有value，遍历的话应该是field个数的2倍，这里Antirez做了一个小手脚，既然entry是field1,value1,field2,value2这样成对出现，在遍历的fields的时候，可以跳跃式比较，节省了一半。可见，Antirez对待这些细节也是非常认真的。

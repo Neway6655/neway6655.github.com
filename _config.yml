@@ -1,82 +1,18 @@
-# Where things are
-source:       .
-destination:  ./_site
-plugins_dir:      ./_plugins
-layouts_dir:      ./_layouts
-paginate:     8
-gems: [jekyll-paginate]
+# Setup
+title:        Neway's Backyard About Technology
+tagline:      Don't find fault. Find a remedy. -- Henry Ford
+baseurl:      ""
+paginate:     5
+locale:       "en"
 
-# Handling Reading
-safe:         false
-include:      [".htaccess"]
-exclude:      []
-keep_files:   [".git", ".svn"]
-encoding:     "utf-8"
-markdown_ext: "markdown,mkdown,mkdn,mkd,md"
-textile_ext:  "textile"
+# About/contact
+author:
+  name:       Neway
+  url:        https://neway6655.github.io 
 
-# Filtering Content
-show_drafts:  null
-limit_posts:  0
-future:       true
-unpublished:  false
+# Gems
+gems:
+  - jekyll-paginate
 
-# Conversion
-markdown:     kramdown
-highlighter:  rouge
-lsi:          false
-excerpt_separator: "\n\n"
-
-# Serving
-detach:       false
-port:         4000
-host:         127.0.0.1
-baseurl:      "" # does not include hostname
-
-# Outputting
-permalink:     date
-paginate_path: /page:num
-timezone:      null
-
-
-#站点基础配置
-title: Neway's Backyard
-subTitle: Don't find fault. Find a remedy. -- Henry Ford
-description: About programming technicals, with interested things/experiences shared from daily work and studys. 
-url: https://neway6655.github.io
-feed: /atom.xml
-
-#菜单配置
-nav:
-  - text: 首页
-    url: /index.html
-  - text: 文章归档
-    url: /archives.html
-
-#theme config
-themes: /themes/violet
-
-#配置你喜欢的顶部背景图片
-headimg:
-  - item: /themes/violet/images/hdbg01.jpg
-  - item: /themes/violet/images/hdbg02.jpg
-  - item: /themes/violet/images/hdbg03.jpg
-  - item: /themes/violet/images/hdbg04.jpg
-
-#关注我
-follow:
-  - class: fa-github
-    url: http://github.com/Neway6655
-  - class: fa-weibo
-    url: http://weibo.com/1869292943/profile?topnav=1&wvr=6 
-  - class: fa-twitter
-    url: https://twitter.com/Neway6655 
-
-#评论信息
-disqus:
-  config: false 
-  id: 
-
-duoshuo:
-  config: false
-  id: neway6655
+#Others
+markdown: kramdown
