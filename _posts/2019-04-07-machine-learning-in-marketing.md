@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "机器学习在市场营销中使用的思考"
+title: "机器学习在市场营销中实践的思考"
 description: "AI盛行的年代，我们该如何找到正确的姿势运用AI，对公司市场运营产生真正的业务价值。本文将从技术角度，结合本人在电商CRM运营中运用机器学习，帮助业务带来价值提升的实践经历，谈谈机器学习在市场营销领域实践过程中的一些思考。"
 category: machine-learning, marketing
 tags: [machine-learning, marketing]
