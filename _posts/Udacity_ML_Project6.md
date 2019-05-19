@@ -1,3 +1,13 @@
+---
+layout: post
+title: "药店销售额预测"
+description: ""
+category: machine-learning
+tags: [machine-learning]
+
+
+---
+
 # 机器学习纳米学位
 
 刘伟
