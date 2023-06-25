@@ -38,6 +38,6 @@ tags: [bitmap, range query]
 
 ![range-ecnoded bit-sliced indexes bitmap](https://raw.githubusercontent.com/Neway6655/neway6655.github.com/master/images/bitmap-range-query/range-bit-sliced-indexes-bitmap.jpg)
 
-例如要查询“价格<=78”的商品，用10进制来表示：<=70 ∪ (<=80 ∩ <=8)，即(comp 1) - 7 ∪ ((comp 1) - 8) ∩ (comp 0) - 8)。
+例如要查询“价格<=78”的商品，用10进制来表示：<=70 ∪ (<=70 ∩ <=8)，即(comp 1) - 7 ∪ ((comp 1) - 7) ∩ (comp 0) - 8)。
 
 若要查询“价格>78”的商品，留给大家可以思考如何运算？
